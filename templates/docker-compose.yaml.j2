@@ -7,13 +7,23 @@ services:
 {% if container.ports | length > 0 %}
     ports:
 {% for port in container.ports %}
-      - "{{ port }}:{{ port }}"
+{% if port is mapping %}
+      - "{% if port.ip is defined %}{{ port.ip }}:{% endif %}{{ port.host | default(port.port) }}:{{ port.container | default(port.port) }}{% if port.protocol is defined %}/{{ port.protocol }}{% endif %}"
+{% else %}
+      - "{{ port }}"
+{% endif%}
 {% endfor %}
 {% endif%}
 {% if container.volumes | length > 0 %}
     volumes:
 {% for volume in container.volumes %}
+{% if volume is mapping %}
+      - "{{ volume.source }}:{{ volume.target }}"
+{% else %}
       - "{{ volume }}"
+{% endif%}
+{% endfor %}
+{% endif%}
 {% endfor %}
 {% endif%}
 {% endfor %}
