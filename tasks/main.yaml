@@ -18,4 +18,16 @@
       with_items: "{{ docker_compose_containers }}"
       notify: docker compose start
       when: docker_compose_pull_images
+
+    - name: create volume mounts
+      ansible.builtin.file:
+        dest: "{{ item.source }}"
+        state: "{{ item.state | default('directory') }}"
+      with_items:
+        - "{{ docker_compose_containers
+              | selectattr('volumes', 'defined')
+              | map(attribute='volumes')
+              | flatten
+              | selectattr('source', 'defined') }}"
+      when: docker_compose_create_mounts
   when: docker_compose_containers | length > 0

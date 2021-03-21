@@ -6,3 +6,5 @@ docker_compose_containers: []
 docker_compose_autostart: yes
 
 docker_compose_pull_images: yes
+
+docker_compose_create_mounts: yes
