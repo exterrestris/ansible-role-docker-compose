@@ -1,0 +1,15 @@
+version: '{{ docker_compose_schema_version }}'
+
+services:
+{% for container in docker_compose_containers %}
+  {{ container.service_name }}:
+    image: {{ container.image }}
+    ports:
+{% for port in container.ports %}
+      - "{{ port }}:{{ port }}"
+{% endfor %}
+    volumes:
+{% for volume in container.volumes %}
+      - "{{ volume }}"
+{% endfor %}
+{% endfor %}
