@@ -9,14 +9,12 @@
       ansible.builtin.template:
         src: docker-compose.yaml.j2
         dest: "{{ docker_compose_project_dir }}/docker-compose.yaml"
-      notify: docker compose start
 
     - name: pull docker images
       community.docker.docker_image:
         name: "{{ item.image }}"
         source: pull
       with_items: "{{ docker_compose_containers }}"
-      notify: docker compose start
       when: docker_compose_pull_images
 
     - name: create volume mounts
@@ -30,4 +28,10 @@
               | flatten
               | selectattr('source', 'defined') }}"
       when: docker_compose_create_mounts
+
+    - name: start docker compose
+      community.docker.docker_compose:
+        state: present
+        project_src: "{{ docker_compose_project_dir }}"
+      when: docker_compose_autostart
   when: docker_compose_containers | length > 0
