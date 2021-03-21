@@ -12,4 +12,5 @@
         source: pull
       with_items: "{{ docker_compose_containers }}"
       notify: docker compose start
+      when: docker_compose_pull_images
   when: docker_compose_containers | length > 0
