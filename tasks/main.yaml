@@ -3,3 +3,9 @@
   ansible.builtin.template:
     src: docker-compose.yaml.j2
     dest: "{{ docker_compose_project_dir }}/docker-compose.yaml"
+
+- name: pull docker images
+  community.docker.docker_image:
+    name: "{{ item.image }}"
+    source: pull
+  with_items: "{{ docker_compose_containers }}"
