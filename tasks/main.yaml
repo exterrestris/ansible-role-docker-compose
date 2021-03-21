@@ -1,4 +1,9 @@
 ---
+- name: create project directory
+  file:
+    dest: "{{ docker_compose_project_dir }}"
+    state: directory
+
 - block:
     - name: generate docker-compose
       ansible.builtin.template:
