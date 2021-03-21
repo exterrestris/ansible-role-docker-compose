@@ -1,40 +1,24 @@
----
-- name: create project directory
-  file:
-    dest: "{{ docker_compose_project_dir }}"
-    state: directory
+- name: generate multiple docker compose files
+  include_tasks: compose.yaml
+  vars:
+    _docker_compose_project_dir: "{{ project.project_dir }}"
+    _docker_compose_containers: "{{ project.containers }}"
+    _docker_compose_networks: "{{ project.networks | default(docker_compose_networks) }}"
+    _docker_compose_autostart: "{{ project.autostart | default(docker_compose_autostart) }}"
+    _docker_compose_pull_images: "{{ project.pull_images | default(docker_compose_pull_images) }}"
+    _docker_compose_create_mounts: "{{ project.create_mounts | default(docker_compose_create_mounts) }}"
+  loop: "{{ docker_compose_files }}"
+  loop_control:
+    loop_var: project
+  when: docker_compose_files | length > 0
 
-- block:
-    - name: generate docker-compose
-      ansible.builtin.template:
-        src: docker-compose.yaml.j2
-        dest: "{{ docker_compose_project_dir }}/docker-compose.yaml"
-
-    - name: pull docker images
-      community.docker.docker_image:
-        name: "{{ item.image }}"
-        source: pull
-      with_items: "{{ docker_compose_containers }}"
-      when: docker_compose_pull_images
-
-    - name: create volume mounts
-      ansible.builtin.file:
-        dest: "{{ item.source }}"
-        state: "{{ item.state | default('directory') }}"
-        owner: "{{ item.owner | default(omit) }}"
-        group: "{{ item.group | default(omit) }}"
-        mode: "{{ item.mode | default(omit) }}"
-      with_items:
-        - "{{ docker_compose_containers
-              | selectattr('volumes', 'defined')
-              | map(attribute='volumes')
-              | flatten
-              | selectattr('source', 'defined') }}"
-      when: docker_compose_create_mounts
-
-    - name: start docker compose
-      community.docker.docker_compose:
-        state: present
-        project_src: "{{ docker_compose_project_dir }}"
-      when: docker_compose_autostart
-  when: docker_compose_containers | length > 0
+- name: generate single docker compose file
+  include_tasks: compose.yaml
+  vars:
+    _docker_compose_project_dir: "{{ docker_compose_project_dir }}"
+    _docker_compose_containers: "{{ docker_compose_containers }}"
+    _docker_compose_networks: "{{ docker_compose_networks }}"
+    _docker_compose_autostart: "{{ docker_compose_autostart }}"
+    _docker_compose_pull_images: "{{ docker_compose_pull_images }}"
+    _docker_compose_create_mounts: "{{ docker_compose_create_mounts }}"
+  when: docker_compose_files | length == 0

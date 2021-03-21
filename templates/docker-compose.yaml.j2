@@ -1,7 +1,7 @@
 version: '{{ docker_compose_schema_version }}'
 
 services:
-{% for container in docker_compose_containers %}
+{% for container in _docker_compose_containers %}
   {{ container.service_name }}:
     image: {{ container.image }}
 {% if container.expose | default([]) | length > 0 %}
@@ -61,9 +61,9 @@ services:
 {% endif %}
 {% endfor %}
 
-{% if docker_compose_networks | length > 0 %}
+{% if _docker_compose_networks | length > 0 %}
 networks:
-{% for network in docker_compose_networks %}
+{% for network in _docker_compose_networks %}
   {{ network.alias | default(network.name) }}:
     external: {{ network.external | default('true') | string | lower }}
     name: {{ network.name }}

@@ -1,0 +1,43 @@
+---
+- name: create project directory
+  file:
+    dest: "{{ _docker_compose_project_dir }}"
+    state: directory
+
+- block:
+    - name: generate docker-compose
+      ansible.builtin.template:
+        src: docker-compose.yaml.j2
+        dest: "{{ _docker_compose_project_dir }}/docker-compose.yaml"
+
+    - name: pull docker images
+      community.docker.docker_image:
+        name: "{{ container.image }}"
+        source: pull
+      loop: "{{ _docker_compose_containers }}"
+      loop_control:
+        loop_var: container
+      when: _docker_compose_pull_images
+
+    - name: create volume mounts
+      ansible.builtin.file:
+        dest: "{{ volume.source }}"
+        state: "{{ volume.state | default('directory') }}"
+        owner: "{{ volume.owner | default(omit) }}"
+        group: "{{ volume.group | default(omit) }}"
+        mode: "{{ volume.mode | default(omit) }}"
+      loop: "{{ _docker_compose_containers
+              | selectattr('volumes', 'defined')
+              | map(attribute='volumes')
+              | flatten
+              | selectattr('source', 'defined') }}"
+      loop_control:
+        loop_var: volume
+      when: _docker_compose_create_mounts
+
+    - name: start docker compose
+      community.docker.docker_compose:
+        state: present
+        project_src: "{{ _docker_compose_project_dir }}"
+      when: _docker_compose_autostart
+  when: _docker_compose_containers | length > 0
