@@ -34,4 +34,14 @@ services:
 {% endif%}
 {% endfor %}
 {% endif%}
+{% if container.labels is defined %}
+    labels:
+{% for label in container.labels %}
+{% if label is mapping %}
+      - "{{ label.name }}{% if label.value is defined %}={{ label.value }}{% endif %}"
+{% else %}
+      - "{{ label }}"
+{% endif%}
+{% endfor %}
+{% endif %}
 {% endfor %}
