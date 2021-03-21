@@ -1,0 +1,5 @@
+---
+- name: docker compose start
+  community.docker.docker_compose:
+    state: present
+    project_src: "{{ docker_compose_project_dir }}"
