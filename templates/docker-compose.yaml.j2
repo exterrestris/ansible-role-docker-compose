@@ -24,6 +24,14 @@ services:
 {% endif%}
 {% endfor %}
 {% endif%}
+{% if container.environment | length > 0 %}
+    environment:
+{% for env in container.environment %}
+{% if env is mapping %}
+      - "{{ env.name }}={{ env.value}}"
+{% else %}
+      - "{{ env }}"
+{% endif%}
 {% endfor %}
 {% endif%}
 {% endfor %}
