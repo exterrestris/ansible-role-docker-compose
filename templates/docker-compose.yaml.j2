@@ -4,12 +4,16 @@ services:
 {% for container in docker_compose_containers %}
   {{ container.service_name }}:
     image: {{ container.image }}
+{% if container.ports | length > 0 %}
     ports:
 {% for port in container.ports %}
       - "{{ port }}:{{ port }}"
 {% endfor %}
+{% endif%}
+{% if container.volumes | length > 0 %}
     volumes:
 {% for volume in container.volumes %}
       - "{{ volume }}"
 {% endfor %}
+{% endif%}
 {% endfor %}
