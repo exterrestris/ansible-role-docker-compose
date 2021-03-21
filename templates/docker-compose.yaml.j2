@@ -4,6 +4,12 @@ services:
 {% for container in docker_compose_containers %}
   {{ container.service_name }}:
     image: {{ container.image }}
+{% if container.expose | default([]) | length > 0 %}
+    expose:
+{% for port in container.expose %}
+      - "{{ port }}"
+{% endfor %}
+{% endif%}
 {% if container.ports | length > 0 %}
     ports:
 {% for port in container.ports %}
@@ -24,6 +30,12 @@ services:
 {% endif%}
 {% endfor %}
 {% endif%}
+{% if container.networks | length > 0 %}
+    networks:
+{% for network in container.networks %}
+      - "{{ network }}"
+{% endfor %}
+{% endif%}
 {% if container.environment | length > 0 %}
     environment:
 {% for env in container.environment %}
@@ -34,6 +46,9 @@ services:
 {% endif%}
 {% endfor %}
 {% endif%}
+{% if container.restart is defined %}
+    restart: {{ container.restart }}
+{% endif %}
 {% if container.labels is defined %}
     labels:
 {% for label in container.labels %}
@@ -45,3 +60,12 @@ services:
 {% endfor %}
 {% endif %}
 {% endfor %}
+
+{% if docker_compose_networks | length > 0 %}
+networks:
+{% for network in docker_compose_networks %}
+  {{ network.alias | default(network.name) }}:
+    external: {{ network.external | default('true') | string | lower }}
+    name: {{ network.name }}
+{% endfor %}
+{% endif %}
