@@ -10,7 +10,7 @@ services:
       - "{{ port }}"
 {% endfor %}
 {% endif%}
-{% if container.ports | length > 0 %}
+{% if container.ports is defined and container.ports | length > 0 %}
     ports:
 {% for port in container.ports %}
 {% if port is mapping %}
@@ -20,7 +20,7 @@ services:
 {% endif%}
 {% endfor %}
 {% endif%}
-{% if container.volumes | length > 0 %}
+{% if container.volumes is defined and container.volumes | length > 0 %}
     volumes:
 {% for volume in container.volumes %}
 {% if volume is mapping %}
@@ -30,7 +30,7 @@ services:
 {% endif%}
 {% endfor %}
 {% endif%}
-{% if container.networks | length > 0 %}
+{% if container.networks is defined and container.networks | length > 0 %}
     networks:
 {% for network in container.networks %}
       - "{{ network }}"
@@ -49,7 +49,7 @@ services:
 {% if container.restart is defined %}
     restart: {{ container.restart }}
 {% endif %}
-{% if container.labels is defined %}
+{% if container.labels is defined and container.labels | length > 0 %}
     labels:
 {% for label in container.labels %}
 {% if label is mapping %}
