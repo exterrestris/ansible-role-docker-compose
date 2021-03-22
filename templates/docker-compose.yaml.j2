@@ -4,7 +4,7 @@ services:
 {% for container in _docker_compose_containers %}
   {{ container.service_name }}:
     image: {{ container.image }}
-{% if container.expose | default([]) | length > 0 %}
+{% if container.expose is defined and container.expose | length > 0 %}
     expose:
 {% for port in container.expose %}
       - "{{ port }}"
