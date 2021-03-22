@@ -3,7 +3,15 @@ version: '{{ docker_compose_schema_version }}'
 services:
 {% for container in _docker_compose_containers %}
   {{ container.service_name }}:
+{%  if container.image is mapping %}
+{%   if container.image.tag is defined %}
+    image: {{ container.image.name }}:{{ container.image.tag }}
+{%     else %}
+    image: {{ container.image.name }}
+{%     endif%}
+{%    else %}
     image: {{ container.image }}
+{%    endif%}
 {%  if container.expose is defined and container.expose | length > 0 %}
     expose:
 {%   for port in container.expose %}

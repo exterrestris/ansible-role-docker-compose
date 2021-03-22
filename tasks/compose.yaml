@@ -15,7 +15,7 @@
 
     - name: pull docker images
       community.docker.docker_image:
-        name: "{{ container.image }}"
+        name: "{{ container.image.name if container.image is mapping else container.image }}"
         source: pull
       loop: "{{ _docker_compose_containers }}"
       loop_control:
