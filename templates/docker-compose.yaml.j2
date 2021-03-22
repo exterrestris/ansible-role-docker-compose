@@ -4,82 +4,82 @@ services:
 {% for container in _docker_compose_containers %}
   {{ container.service_name }}:
     image: {{ container.image }}
-{% if container.expose is defined and container.expose | length > 0 %}
+{%  if container.expose is defined and container.expose | length > 0 %}
     expose:
-{% for port in container.expose %}
+{%   for port in container.expose %}
       - "{{ port }}"
-{% endfor %}
-{% endif%}
-{% if container.ports is defined and container.ports | length > 0 %}
+{%   endfor %}
+{%  endif%}
+{%  if container.ports is defined and container.ports | length > 0 %}
     ports:
-{% for port in container.ports %}
-{% if port is mapping %}
+{%   for port in container.ports %}
+{%    if port is mapping %}
       - "{% if port.ip is defined %}{{ port.ip }}:{% endif %}{{ port.host | default(port.port) }}:{{ port.container | default(port.port) }}{% if port.protocol is defined %}/{{ port.protocol }}{% endif %}"
-{% else %}
+{%    else %}
       - "{{ port }}"
-{% endif%}
-{% endfor %}
-{% endif%}
-{% if container.volumes is defined and container.volumes | length > 0 %}
+{%    endif%}
+{%   endfor %}
+{%  endif%}
+{%  if container.volumes is defined and container.volumes | length > 0 %}
     volumes:
-{% for volume in container.volumes %}
-{% if volume is mapping %}
+{%   for volume in container.volumes %}
+{%    if volume is mapping %}
       - "{{ volume.source }}:{{ volume.target }}"
-{% else %}
+{%    else %}
       - "{{ volume }}"
-{% endif%}
-{% endfor %}
-{% endif%}
-{% if container.networks is defined and container.networks | length > 0 %}
+{%    endif%}
+{%   endfor %}
+{%  endif%}
+{%  if container.networks is defined and container.networks | length > 0 %}
     networks:
-{% for network in container.networks %}
+{%   for network in container.networks %}
       - "{{ network }}"
-{% endfor %}
-{% endif%}
-{% if container.network_mode is defined %}
+{%   endfor %}
+{%  endif%}
+{%  if container.network_mode is defined %}
     network_mode: {{ container.network_mode }}
-{% endif%}
-{% if container.environment | length > 0 %}
+{%  endif%}
+{%  if container.environment | length > 0 %}
     environment:
-{% for env in container.environment %}
-{% if env is mapping %}
+{%   for env in container.environment %}
+{%    if env is mapping %}
       - "{{ env.name }}={{ env.value}}"
-{% else %}
+{%    else %}
       - "{{ env }}"
-{% endif%}
-{% endfor %}
-{% endif%}
-{% if container.restart is defined %}
+{%    endif%}
+{%   endfor %}
+{%  endif%}
+{%  if container.restart is defined %}
     restart: {{ container.restart }}
-{% endif %}
-{% if container.labels is defined and container.labels | length > 0 %}
+{%  endif %}
+{%  if container.labels is defined and container.labels | length > 0 %}
     labels:
-{% for label in container.labels %}
-{% if label is mapping %}
+{%   for label in container.labels %}
+{%    if label is mapping %}
       - "{{ label.name }}{% if label.value is defined %}={{ label.value }}{% endif %}"
-{% else %}
+{%    else %}
       - "{{ label }}"
-{% endif%}
-{% endfor %}
-{% endif %}
+{%    endif%}
+{%   endfor %}
+{%  endif %}
 {% endfor %}
 
 {% if _docker_compose_networks | length > 0 %}
 networks:
-{% for network in _docker_compose_networks %}
+{%  for network in _docker_compose_networks %}
   {{ network.name }}:
     external: {{ network.external | default('false') | string | lower }}
-{% if network.alias is defined %}
+{%   if network.alias is defined %}
     name: {{ network.alias }}
-{% endif %}
-{% if network.driver is defined %}
+{%   endif %}
+{%   if network.driver is defined %}
     driver: {{ network.driver }}
-{% endif %}
-{% if network.driver_opts is defined %}
+{%   endif %}
+{%   if network.driver_opts is defined %}
     driver_opts:
-{% for opt, value in network.driver_opts.items() %}
+{%    for opt, value in network.driver_opts.items() %}
       {{ opt }}: {{ value }}
-{% endfor %}
-{% endif %}
-{% endfor %}
+{%    endfor %}
+{%   endif %}
+{%  endfor %}
 {% endif %}
