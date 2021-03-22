@@ -64,8 +64,10 @@ services:
 {% if _docker_compose_networks | length > 0 %}
 networks:
 {% for network in _docker_compose_networks %}
-  {{ network.alias | default(network.name) }}:
-    external: {{ network.external | default('true') | string | lower }}
-    name: {{ network.name }}
+  {{ network.name }}:
+    external: {{ network.external | default('false') | string | lower }}
+{% if network.alias is defined %}
+    name: {{ network.alias }}
+{% endif %}
 {% endfor %}
 {% endif %}
