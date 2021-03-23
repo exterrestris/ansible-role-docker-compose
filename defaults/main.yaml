@@ -11,4 +11,4 @@ docker_compose_pull_images: yes
 
 docker_compose_create_mounts: yes
 
-docker_compose_files: []
+docker_compose_projects: []
