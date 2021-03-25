@@ -38,11 +38,16 @@ services:
 {%    endif%}
 {%   endfor %}
 {%  endif%}
-{%  if container.networks is defined and container.networks | length > 0 %}
+{%  if container.networks is defined %}
+{%   if container.networks is string %}
     networks:
-{%   for network in container.networks %}
+      - "{{ container.networks }}"
+{%   elif container.networks | length > 0 %}
+    networks:
+{%    for network in container.networks %}
       - "{{ network }}"
-{%   endfor %}
+{%    endfor %}
+{%   endif%}
 {%  elif container.network_mode is defined %}
     network_mode: {{ container.network_mode }}
 {%  endif%}
