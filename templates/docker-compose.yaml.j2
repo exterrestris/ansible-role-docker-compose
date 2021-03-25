@@ -43,8 +43,7 @@ services:
 {%   for network in container.networks %}
       - "{{ network }}"
 {%   endfor %}
-{%  endif%}
-{%  if container.network_mode is defined %}
+{%  elif container.network_mode is defined %}
     network_mode: {{ container.network_mode }}
 {%  endif%}
 {%  if container.environment | length > 0 %}
