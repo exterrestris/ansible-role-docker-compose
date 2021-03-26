@@ -8,36 +8,51 @@ services:
     image: {{ container.image.name }}:{{ container.image.tag }}
 {%   else %}
     image: {{ container.image.name }}
-{%   endif%}
+{%   endif %}
 {%  else %}
     image: {{ container.image }}
-{%  endif%}
-{%  if container.expose is defined and container.expose | length > 0 %}
+{%  endif %}
+{%  if container.expose is defined %}
+{%   if container.expose is string %}
     expose:
-{%   for port in container.expose %}
+      - "{{ container.expose }}"
+{%   elif container.expose | length > 0 %}
+    expose:
+{%    for port in container.expose %}
       - "{{ port }}"
-{%   endfor %}
-{%  endif%}
-{%  if container.ports is defined and container.ports | length > 0 %}
+{%    endfor %}
+{%   endif %}
+{%  endif %}
+{%  if container.ports is defined %}
+{%   if container.ports is string %}
     ports:
-{%   for port in container.ports %}
-{%    if port is mapping %}
+      - "{{ container.ports }}"
+{%   elif container.ports | length > 0 %}
+    ports:
+{%    for port in container.ports %}
+{%     if port is mapping %}
       - "{% if port.ip is defined %}{{ port.ip }}:{% endif %}{{ port.host | default(port.port) }}:{{ port.container | default(port.port) }}{% if port.protocol is defined %}/{{ port.protocol }}{% endif %}"
-{%    else %}
+{%     else %}
       - "{{ port }}"
-{%    endif%}
-{%   endfor %}
-{%  endif%}
-{%  if container.volumes is defined and container.volumes | length > 0 %}
+{%     endif %}
+{%    endfor %}
+{%   endif %}
+{%  endif %}
+{%  if container.volumes is defined %}
+{%   if container.volumes is string %}
     volumes:
-{%   for volume in container.volumes %}
-{%    if volume is mapping %}
+      - "{{ container.volumes }}"
+{%   elif container.volumes | length > 0 %}
+    volumes:
+{%    for volume in container.volumes %}
+{%     if volume is mapping %}
       - "{{ volume.source }}:{{ volume.target }}"
-{%    else %}
+{%     else %}
       - "{{ volume }}"
-{%    endif%}
-{%   endfor %}
-{%  endif%}
+{%     endif %}
+{%    endfor %}
+{%   endif %}
+{%  endif %}
 {%  if container.networks is defined %}
 {%   if container.networks is string %}
     networks:
@@ -47,32 +62,42 @@ services:
 {%    for network in container.networks %}
       - "{{ network }}"
 {%    endfor %}
-{%   endif%}
+{%   endif %}
 {%  elif container.network_mode is defined %}
     network_mode: {{ container.network_mode }}
-{%  endif%}
-{%  if container.environment | length > 0 %}
+{%  endif %}
+{%  if container.environment is defined %}
+{%   if container.environment is string %}
     environment:
-{%   for env in container.environment %}
-{%    if env is mapping %}
+      - "{{ container.environment }}"
+{%   elif container.environment | length > 0 %}
+    environment:
+{%    for env in container.environment %}
+{%     if env is mapping %}
       - "{{ env.name }}={{ env.value}}"
-{%    else %}
+{%     else %}
       - "{{ env }}"
-{%    endif%}
-{%   endfor %}
-{%  endif%}
+{%     endif %}
+{%    endfor %}
+{%   endif %}
+{%  endif %}
 {%  if container.restart is defined %}
     restart: {{ container.restart }}
 {%  endif %}
-{%  if container.labels is defined and container.labels | length > 0 %}
+{%  if container.labels is defined %}
+{%   if container.labels is string %}
     labels:
-{%   for label in container.labels %}
-{%    if label is mapping %}
+      - "{{ container.labels }}"
+{%   elif container.labels | length > 0 %}
+    labels:
+{%    for label in container.labels %}
+{%     if label is mapping %}
       - "{{ label.name }}{% if label.value is defined %}={{ label.value }}{% endif %}"
-{%    else %}
+{%     else %}
       - "{{ label }}"
-{%    endif%}
-{%   endfor %}
+{%     endif %}
+{%    endfor %}
+{%   endif %}
 {%  endif %}
 {% endfor %}
 
