@@ -12,3 +12,11 @@ docker_compose_pull_images: yes
 docker_compose_create_mounts: yes
 
 docker_compose_projects: []
+
+docker_compose_project_owner: root
+
+docker_compose_project_group: root
+
+docker_compose_project_mode: '644'
+
+docker_compose_project_dir_mode: '755'

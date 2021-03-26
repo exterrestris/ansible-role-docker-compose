@@ -2,6 +2,10 @@
   include_tasks: compose.yaml
   vars:
     _docker_compose_project_dir: "{{ project.project_dir }}"
+    _docker_compose_project_owner: "{{ project.project_owner | default(docker_compose_project_owner) }}"
+    _docker_compose_project_group: "{{ project.project_group | default(docker_compose_project_group) }}"
+    _docker_compose_project_mode: "{{ project.project_mode | default(docker_compose_project_mode) }}"
+    _docker_compose_project_dir_mode: "{{ project.project_dir_mode | default(docker_compose_project_dir_mode) }}"
     _docker_compose_containers: "{{ project.containers }}"
     _docker_compose_networks: "{{ project.networks | default(docker_compose_networks) }}"
     _docker_compose_autostart: "{{ project.autostart | default(docker_compose_autostart) }}"
@@ -16,6 +20,10 @@
   include_tasks: compose.yaml
   vars:
     _docker_compose_project_dir: "{{ docker_compose_project_dir }}"
+    _docker_compose_project_owner: "{{ docker_compose_project_owner }}"
+    _docker_compose_project_group: "{{ docker_compose_project_group }}"
+    _docker_compose_project_mode: "{{ docker_compose_project_mode }}"
+    _docker_compose_project_dir_mode: "{{ docker_compose_project_dir_mode }}"
     _docker_compose_containers: "{{ docker_compose_containers }}"
     _docker_compose_networks: "{{ docker_compose_networks }}"
     _docker_compose_autostart: "{{ docker_compose_autostart }}"
