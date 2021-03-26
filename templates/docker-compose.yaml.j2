@@ -48,9 +48,9 @@ services:
 {%  if container.volumes is defined %}
 {%   call(volume) shorthand('volumes', container.volumes) %}
 {%    if volume is mapping %}
-"{{ volume.source }}:{{ volume.target }}"
+"{{ volume.source if volume.source.startswith('/') else _docker_compose_project_dir ~ '/' ~ volume.source }}:{{ volume.target }}"
 {%-   else %}
-"{{ volume }}"
+"{{ volume if volume.startswith('/') else _docker_compose_project_dir ~ '/' ~ volume }}"
 {%-   endif %}
 {%   endcall %}
 {%  endif %}

@@ -30,7 +30,7 @@
 
     - name: create volume mounts
       ansible.builtin.file:
-        dest: "{{ volume.source }}"
+        dest: "{{ volume.source if volume.source.startswith('/') else _docker_compose_project_dir ~ '/' ~ volume.source }}"
         state: "{{ volume.state | default('directory') }}"
         owner: "{{ volume.owner | default(omit) }}"
         group: "{{ volume.group | default(omit) }}"
