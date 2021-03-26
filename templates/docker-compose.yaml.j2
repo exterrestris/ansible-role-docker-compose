@@ -6,12 +6,12 @@ services:
 {%  if container.image is mapping %}
 {%   if container.image.tag is defined %}
     image: {{ container.image.name }}:{{ container.image.tag }}
-{%     else %}
+{%   else %}
     image: {{ container.image.name }}
-{%     endif%}
-{%    else %}
+{%   endif%}
+{%  else %}
     image: {{ container.image }}
-{%    endif%}
+{%  endif%}
 {%  if container.expose is defined and container.expose | length > 0 %}
     expose:
 {%   for port in container.expose %}
