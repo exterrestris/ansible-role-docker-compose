@@ -30,8 +30,26 @@ services:
     user: "{{ container.user }}"
 {%   endif %}
 {%  endif %}
+{%  if container.hostname is defined %}
+    hostname: {{ container.hostname }}
+{%  endif %}
 {%  if container.command is defined %}
     command: {{ container.command }}
+{%  endif %}
+{%  if container.cap_add is defined %}
+{{ shorthand('cap_add', container.cap_add)}}
+{%- endif %}
+{%  if container.cap_drop is defined %}
+{{ shorthand('cap_drop', container.cap_drop)}}
+{%- endif %}
+{%  if container.sysctls is defined %}
+{%   call(sysctl) shorthand('sysctls', container.sysctls) %}
+{%    if sysctl is mapping %}
+"{{ sysctl.name }}={{ sysctl.value }}"
+{%-   else %}
+"{{ sysctl }}"
+{%-   endif %}
+{%   endcall %}
 {%  endif %}
 {%  if container.expose is defined %}
 {{ shorthand('expose', container.expose)}}
@@ -42,6 +60,15 @@ services:
 "{% if port.ip is defined %}{{ port.ip }}:{% endif %}{{ port.host | default(port.port) }}:{{ port.container | default(port.port) }}{% if port.protocol is defined %}/{{ port.protocol }}{% endif %}"
 {%-   else %}
 "{{ port }}"
+{%-   endif %}
+{%   endcall %}
+{%  endif %}
+{%  if container.devices is defined %}
+{%   call(device) shorthand('devices', container.devices) %}
+{%    if device is mapping %}
+"{{ device.source }}:{{ device.target }}"
+{%-   else %}
+"{{ device }}"
 {%-   endif %}
 {%   endcall %}
 {%  endif %}
