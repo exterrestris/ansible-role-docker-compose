@@ -1,3 +1,14 @@
+{% macro shorthand(property, values) %}
+{%  if values is string %}
+    {{ property }}:
+      - "{{ values }}"
+{%  elif values | length > 0 %}
+    {{ property }}:
+{%   for value in values %}
+      - {{ caller(value) if caller is defined else '"' ~ value ~ '"' }}
+{%   endfor %}
+{%  endif %}
+{% endmacro %}
 version: '{{ docker_compose_schema_version }}'
 
 services:
@@ -23,91 +34,51 @@ services:
     command: {{ container.command }}
 {%  endif %}
 {%  if container.expose is defined %}
-{%   if container.expose is string %}
-    expose:
-      - "{{ container.expose }}"
-{%   elif container.expose | length > 0 %}
-    expose:
-{%    for port in container.expose %}
-      - "{{ port }}"
-{%    endfor %}
-{%   endif %}
+{{ shorthand('expose', container.expose)}}
 {%  endif %}
 {%  if container.ports is defined %}
-{%   if container.ports is string %}
-    ports:
-      - "{{ container.ports }}"
-{%   elif container.ports | length > 0 %}
-    ports:
-{%    for port in container.ports %}
-{%     if port is mapping %}
-      - "{% if port.ip is defined %}{{ port.ip }}:{% endif %}{{ port.host | default(port.port) }}:{{ port.container | default(port.port) }}{% if port.protocol is defined %}/{{ port.protocol }}{% endif %}"
-{%     else %}
-      - "{{ port }}"
-{%     endif %}
-{%    endfor %}
-{%   endif %}
+{%   call(port) shorthand('ports', container.ports) %}
+{%    if port is mapping %}
+"{% if port.ip is defined %}{{ port.ip }}:{% endif %}{{ port.host | default(port.port) }}:{{ port.container | default(port.port) }}{% if port.protocol is defined %}/{{ port.protocol }}{% endif %}"
+{%-   else %}
+"{{ port }}"
+{%-   endif %}
+{%   endcall %}
 {%  endif %}
 {%  if container.volumes is defined %}
-{%   if container.volumes is string %}
-    volumes:
-      - "{{ container.volumes }}"
-{%   elif container.volumes | length > 0 %}
-    volumes:
-{%    for volume in container.volumes %}
-{%     if volume is mapping %}
-      - "{{ volume.source }}:{{ volume.target }}"
-{%     else %}
-      - "{{ volume }}"
-{%     endif %}
-{%    endfor %}
-{%   endif %}
+{%   call(volume) shorthand('volumes', container.volumes) %}
+{%    if volume is mapping %}
+"{{ volume.source }}:{{ volume.target }}"
+{%-   else %}
+"{{ volume }}"
+{%-   endif %}
+{%   endcall %}
 {%  endif %}
 {%  if container.networks is defined %}
-{%   if container.networks is string %}
-    networks:
-      - "{{ container.networks }}"
-{%   elif container.networks | length > 0 %}
-    networks:
-{%    for network in container.networks %}
-      - "{{ network }}"
-{%    endfor %}
-{%   endif %}
-{%  elif container.network_mode is defined %}
+{{ shorthand('networks', container.networks)}}
+{%- elif container.network_mode is defined %}
     network_mode: {{ container.network_mode }}
 {%  endif %}
 {%  if container.environment is defined %}
-{%   if container.environment is string %}
-    environment:
-      - "{{ container.environment }}"
-{%   elif container.environment | length > 0 %}
-    environment:
-{%    for env in container.environment %}
-{%     if env is mapping %}
-      - "{{ env.name }}={{ env.value}}"
-{%     else %}
-      - "{{ env }}"
-{%     endif %}
-{%    endfor %}
-{%   endif %}
+{%   call(env) shorthand('environment', container.environment) %}
+{%    if env is mapping %}
+"{{ env.name }}={{ env.value }}"
+{%-   else %}
+"{{ env }}"
+{%-   endif %}
+{%   endcall %}
 {%  endif %}
 {%  if container.restart is defined %}
     restart: {{ container.restart }}
 {%  endif %}
 {%  if container.labels is defined %}
-{%   if container.labels is string %}
-    labels:
-      - "{{ container.labels }}"
-{%   elif container.labels | length > 0 %}
-    labels:
-{%    for label in container.labels %}
-{%     if label is mapping %}
-      - "{{ label.name }}{% if label.value is defined %}={{ label.value }}{% endif %}"
-{%     else %}
-      - "{{ label }}"
-{%     endif %}
-{%    endfor %}
-{%   endif %}
+{%   call(label) shorthand('labels', container.labels) %}
+{%    if label is mapping %}
+"{{ label.name }}{% if label.value is defined %}={{ label.value }}{% endif %}"
+{%-   else %}
+"{{ label }}"
+{%-   endif %}
+{%   endcall %}
 {%  endif %}
 {% endfor %}
 
