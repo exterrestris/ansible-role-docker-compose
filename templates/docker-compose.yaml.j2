@@ -53,7 +53,7 @@ services:
 {%  endif %}
 {%  if container.expose is defined %}
 {{ shorthand('expose', container.expose)}}
-{%  endif %}
+{%- endif %}
 {%  if container.ports is defined %}
 {%   call(port) shorthand('ports', container.ports) %}
 {%    if port is mapping %}
