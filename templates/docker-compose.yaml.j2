@@ -19,6 +19,9 @@ services:
     user: "{{ container.user }}"
 {%   endif %}
 {%  endif %}
+{%  if container.command is defined %}
+    command: {{ container.command }}
+{%  endif %}
 {%  if container.expose is defined %}
 {%   if container.expose is string %}
     expose:
