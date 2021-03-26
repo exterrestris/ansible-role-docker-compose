@@ -12,6 +12,13 @@ services:
 {%  else %}
     image: {{ container.image }}
 {%  endif %}
+{%  if container.user is defined %}
+{%   if container.user is mapping %}
+    user: "{{ container.user.user }}{% if container.user.group is defined %}:{{ container.user.group }}{% endif %}"
+{%   else %}
+    user: "{{ container.user }}"
+{%   endif %}
+{%  endif %}
 {%  if container.expose is defined %}
 {%   if container.expose is string %}
     expose:
