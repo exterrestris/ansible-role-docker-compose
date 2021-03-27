@@ -1,4 +1,9 @@
 ---
+- name: set project directory
+  set_fact:
+    _docker_compose_project_dir: "{{ docker_compose_projects_root ~ '/' ~ _docker_compose_project_dir }}"
+  when: not _docker_compose_project_dir.startswith('/') and docker_compose_projects_root.startswith('/')
+
 - name: create project directory
   file:
     dest: "{{ _docker_compose_project_dir }}"

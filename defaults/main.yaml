@@ -20,3 +20,5 @@ docker_compose_project_group: root
 docker_compose_project_mode: '644'
 
 docker_compose_project_dir_mode: '755'
+
+docker_compose_projects_root: ''
