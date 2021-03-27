@@ -14,6 +14,9 @@ version: '{{ docker_compose_schema_version }}'
 services:
 {% for container in _docker_compose_containers %}
   {{ container.service_name }}:
+{%  if container.container_name is defined %}
+    container_name: {{ container.container_name }}
+{%  endif %}
 {%  if container.image is mapping %}
 {%   if container.image.tag is defined %}
     image: {{ container.image.name }}:{{ container.image.tag }}
