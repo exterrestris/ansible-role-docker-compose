@@ -92,9 +92,9 @@ services:
 {%  if container.environment is defined %}
 {%   call(env) shorthand('environment', container.environment) %}
 {%    if env is mapping %}
-"{{ env.name }}={{ env.value }}"
+"{{ env.name }}={{ env.value | replace("\"", "\\\"") }}"
 {%-   else %}
-"{{ env }}"
+"{{ env | replace("\"", "\\\"") }}"
 {%-   endif %}
 {%   endcall %}
 {%  endif %}
