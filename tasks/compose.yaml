@@ -22,6 +22,7 @@
     - name: pull docker images
       community.docker.docker_image:
         name: "{{ container.image.name if container.image is mapping else container.image }}"
+        tag: "{{ container.image.tag | default('latest') if container.image is mapping else 'latest' }}"
         source: pull
       loop: "{{ _docker_compose_containers }}"
       loop_control:
