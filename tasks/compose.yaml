@@ -29,20 +29,26 @@
         loop_var: container
       when: _docker_compose_pull_images
 
-    - name: create volume mounts
-      ansible.builtin.file:
-        dest: "{{ volume.source if volume.source.startswith('/') else _docker_compose_project_dir ~ '/' ~ volume.source }}"
-        state: "{{ volume.state | default('directory') }}"
-        owner: "{{ volume.owner | default(omit) }}"
-        group: "{{ volume.group | default(omit) }}"
-        mode: "{{ volume.mode | default(omit) }}"
-      loop: "{{ _docker_compose_containers
-              | selectattr('volumes', 'defined')
-              | map(attribute='volumes')
-              | flatten
-              | selectattr('source', 'defined') }}"
-      loop_control:
-        loop_var: volume
+    - name: create volume bind mounts
+      block:
+        - set_fact:
+            _docker_compose_bind_mounts: "{{ _docker_compose_containers
+                                          | selectattr('volumes', 'defined')
+                                          | map(attribute='volumes')
+                                          | flatten
+                                          | selectattr('source', 'defined') }}"
+
+        - ansible.builtin.file:
+            dest: "{{ volume.source if volume.source.startswith('/') else _docker_compose_project_dir ~ '/' ~ volume.source }}"
+            state: "{{ volume.state | default('directory') }}"
+            owner: "{{ volume.owner | default(omit) }}"
+            group: "{{ volume.group | default(omit) }}"
+            mode: "{{ volume.mode | default(omit) }}"
+          loop: "{{ _docker_compose_bind_mounts }}"
+          loop_control:
+            loop_var: volume
+          when:
+            - volume.create | default(no) 
       when: _docker_compose_create_mounts
 
     - name: start docker compose
