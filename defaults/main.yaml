@@ -5,6 +5,8 @@ docker_compose_containers: []
 
 docker_compose_networks: []
 
+docker_compose_volumes: []
+
 docker_compose_autostart: yes
 
 docker_compose_pull_images: yes

@@ -48,6 +48,7 @@
           loop_control:
             loop_var: volume
           when:
+            - (volume.type | default('bind')) == 'bind'
             - volume.create | default(no) 
       when: _docker_compose_create_mounts
 

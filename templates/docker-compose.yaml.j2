@@ -77,8 +77,15 @@ services:
 {%  endif %}
 {%  if container.volumes is defined %}
 {%   call(volume) shorthand('volumes', container.volumes) %}
-{%    if volume is mapping %}
-"{{ volume.source if volume.source.startswith('/') else _docker_compose_project_dir ~ '/' ~ volume.source }}:{{ volume.target }}"
+{%    if volume is mapping -%}
+        type: {{ volume.type | default('bind') }}
+{%    if (volume.type | default('bind')) != "tmpfs" %}
+        source: {{ volume.source if (volume.source.startswith('/') or (volume.type | default('bind')) == "volume") else _docker_compose_project_dir ~ '/' ~ volume.source }}
+{%-   endif %}
+        target: {{ volume.target }}
+{%    if volume.read_only | default(false) %}
+        read_only: true
+{%-   endif %}
 {%-   else %}
 "{{ volume if volume.startswith('/') else _docker_compose_project_dir ~ '/' ~ volume }}"
 {%-   endif %}
@@ -111,6 +118,26 @@ services:
 {%   endcall %}
 {%  endif %}
 {% endfor %}
+
+{% if _docker_compose_volumes | length > 0 %}
+volumes:
+{%  for volume in _docker_compose_volumes %}
+  {{ volume.name }}:
+    external: {{ volume.external | default('false') | string | lower }}
+{%   if volume.alias is defined %}
+    name: {{ volume.alias }}
+{%   endif %}
+{%   if volume.driver is defined %}
+    driver: {{ network.driver }}
+{%   endif %}
+{%   if volume.driver_opts is defined %}
+    driver_opts:
+{%    for opt, value in volume.driver_opts.items() %}
+      {{ opt }}: {{ value }}
+{%    endfor %}
+{%   endif %}
+{%  endfor %}
+{% endif %}
 
 {% if _docker_compose_networks | length > 0 %}
 networks:
