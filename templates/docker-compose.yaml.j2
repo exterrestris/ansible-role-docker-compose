@@ -37,8 +37,8 @@ services:
     hostname: {{ container.hostname }}
 {%  endif %}
 {%  if container.command is defined %}
-    command: {{ container.command }}
-{%  endif %}
+{{ shorthand('command', container.command)}}
+{%- endif %}
 {%  if container.cap_add is defined %}
 {{ shorthand('cap_add', container.cap_add)}}
 {%- endif %}
