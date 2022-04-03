@@ -136,6 +136,15 @@ volumes:
       {{ opt }}: {{ value }}
 {%    endfor %}
 {%   endif %}
+{%   if volume.labels is defined %}
+{%    call(label) shorthand('labels', volume.labels) %}
+{%     if label is mapping %}
+"{{ label.name }}{% if label.value is defined %}={{ label.value }}{% endif %}"
+{%-    else %}
+"{{ label }}"
+{%-    endif %}
+{%    endcall %}
+{%   endif %}
 {%  endfor %}
 {% endif %}
 
@@ -155,6 +164,15 @@ networks:
 {%    for opt, value in network.driver_opts.items() %}
       {{ opt }}: {{ value }}
 {%    endfor %}
+{%   endif %}
+{%   if network.labels is defined %}
+{%    call(label) shorthand('labels', network.labels) %}
+{%     if label is mapping %}
+"{{ label.name }}{% if label.value is defined %}={{ label.value }}{% endif %}"
+{%-    else %}
+"{{ label }}"
+{%-    endif %}
+{%    endcall %}
 {%   endif %}
 {%  endfor %}
 {% endif %}
