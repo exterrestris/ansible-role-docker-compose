@@ -49,7 +49,7 @@
             loop_var: volume
           when:
             - (volume.type | default('bind')) == 'bind'
-            - volume.create | default(no) 
+            - volume.create | default(true) 
       when: _docker_compose_create_mounts
 
     - name: start docker compose
