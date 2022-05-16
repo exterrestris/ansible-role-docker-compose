@@ -31,4 +31,6 @@
     _docker_compose_autostart: "{{ docker_compose_autostart }}"
     _docker_compose_pull_images: "{{ docker_compose_pull_images }}"
     _docker_compose_create_mounts: "{{ docker_compose_create_mounts }}"
-  when: docker_compose_projects | length == 0
+  when:
+    - docker_compose_projects | length == 0
+    - docker_compose_project_dir is defined
