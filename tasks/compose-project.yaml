@@ -10,14 +10,11 @@
 - block:
     - name: generate docker-compose
       ansible.builtin.template:
-        src: "{{ item }}"
+        src: docker-compose.yaml.j2
         dest: "{{ _docker_compose_project_dir }}/docker-compose.yaml"
         owner: "{{ _docker_compose_project_owner }}"
         group: "{{ _docker_compose_project_group }}"
         mode: "{{ _docker_compose_project_mode }}"
-      with_first_found:
-        - docker-compose-{{ docker_compose_schema_version }}.yaml.j2
-        - docker-compose.yaml.j2
 
     - name: pull docker images
       community.docker.docker_image:

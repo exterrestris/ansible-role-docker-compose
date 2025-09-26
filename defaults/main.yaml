@@ -1,6 +1,4 @@
 ---
-docker_compose_schema_version: '3.5'
-
 docker_compose_containers: []
 
 docker_compose_networks: []

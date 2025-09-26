@@ -9,8 +9,6 @@
 {%   endfor %}
 {%  endif %}
 {% endmacro %}
-version: '{{ docker_compose_schema_version }}'
-
 services:
 {% for container in _docker_compose_containers %}
   {{ container.service_name }}:
