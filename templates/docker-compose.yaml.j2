@@ -1,9 +1,8 @@
 {% macro shorthand(property, values) %}
-{%  if values is string %}
     {{ property }}:
+{%  if values is string %}
       - "{{ values }}"
 {%  elif values | length > 0 %}
-    {{ property }}:
 {%   for value in values %}
       - {{ caller(value) if caller is defined else '"' ~ value ~ '"' }}
 {%   endfor %}
@@ -81,7 +80,7 @@ services:
         source: {{ volume.source if (volume.source.startswith('/') or (volume.type | default('bind')) == "volume") else _docker_compose_project_dir ~ '/' ~ volume.source }}
 {%     endif %}
         target: {{ volume.target }}
-{%     if volume.read_only | default(false) %}
+{%-    if volume.read_only | default(false) %}
         read_only: true
 {%-    endif %}
 {%-   else %}
