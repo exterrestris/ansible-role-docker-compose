@@ -85,7 +85,7 @@
       when: _docker_compose_create_mounts
 
     - name: start docker compose
-      community.docker.docker_compose:
+      community.docker.docker_compose_v2:
         state: present
         project_src: "{{ _docker_compose_project_dir }}"
       when: _docker_compose_autostart
