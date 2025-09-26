@@ -1,5 +1,5 @@
 - name: generate multiple docker compose files
-  include_tasks: compose.yaml
+  include_tasks: compose-project.yaml
   vars:
     _docker_compose_project_dir: "{{ project.project_dir }}"
     _docker_compose_project_owner: "{{ project.project_owner | default(docker_compose_project_owner) }}"
@@ -18,7 +18,7 @@
   when: docker_compose_projects | length > 0
 
 - name: generate single docker compose file
-  include_tasks: compose.yaml
+  include_tasks: compose-project.yaml
   vars:
     _docker_compose_project_dir: "{{ docker_compose_project_dir }}"
     _docker_compose_project_owner: "{{ docker_compose_project_owner }}"
