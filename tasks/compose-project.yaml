@@ -30,23 +30,58 @@
       block:
         - set_fact:
             _docker_compose_bind_mounts: "{{ _docker_compose_containers
-                                          | selectattr('volumes', 'defined')
-                                          | map(attribute='volumes')
-                                          | flatten
-                                          | selectattr('source', 'defined') }}"
+                                            | selectattr('volumes', 'defined')
+                                            | map(attribute='volumes')
+                                            | flatten
+                                            | selectattr('source', 'defined') }}"
 
-        - ansible.builtin.file:
+        - set_fact:
+            _docker_compose_bind_directories: "{{ _docker_compose_bind_mounts | rejectattr('template', 'defined') | rejectattr('file', 'defined') }}"
+            _docker_compose_bind_templates: "{{ _docker_compose_bind_mounts | selectattr('template', 'defined') | rejectattr('file', 'defined') }}"
+            _docker_compose_bind_files: "{{ _docker_compose_bind_mounts | selectattr('file', 'defined') | rejectattr('template', 'defined') }}"
+
+        - name: bind directory
+          ansible.builtin.file:
             dest: "{{ volume.source if volume.source.startswith('/') else _docker_compose_project_dir ~ '/' ~ volume.source }}"
-            state: "{{ volume.state | default('directory') }}"
+            state: directory
             owner: "{{ volume.owner | default(omit) }}"
             group: "{{ volume.group | default(omit) }}"
             mode: "{{ volume.mode | default(omit) }}"
-          loop: "{{ _docker_compose_bind_mounts }}"
+          loop: "{{ _docker_compose_bind_directories }}"
           loop_control:
             loop_var: volume
           when:
             - (volume.type | default('bind')) == 'bind'
-            - volume.create | default(true) 
+            - volume.create | default(true)
+
+        - name: bind file from template
+          ansible.builtin.template:
+            src: "{{ volume.template }}"
+            dest: "{{ volume.source if volume.source.startswith('/') else _docker_compose_project_dir ~ '/' ~ volume.source }}"
+            owner: "{{ volume.owner | default(omit) }}"
+            group: "{{ volume.group | default(omit) }}"
+            mode: "{{ volume.mode | default(omit) }}"
+          loop: "{{ _docker_compose_bind_templates }}"
+          loop_control:
+            loop_var: volume
+          when:
+            - (volume.type | default('bind')) == 'bind'
+            - volume.create | default(true)
+
+        - name: bind file from source
+          ansible.builtin.copy:
+            src: "{{ volume.file }}"
+            dest: "{{ volume.source if volume.source.startswith('/') else _docker_compose_project_dir ~ '/' ~ volume.source }}"
+            owner: "{{ volume.owner | default(omit) }}"
+            group: "{{ volume.group | default(omit) }}"
+            mode: "{{ volume.mode | default(omit) }}"
+          loop: "{{ _docker_compose_bind_files }}"
+          loop_control:
+            loop_var: volume
+          when:
+            - volume.file is defined
+            - (volume.type | default('bind')) == 'bind'
+            - volume.create | default(true)
       when: _docker_compose_create_mounts
 
     - name: start docker compose
