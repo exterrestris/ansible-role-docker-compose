@@ -34,16 +34,16 @@ services:
 {%  if container.hostname is defined %}
     hostname: {{ container.hostname }}
 {%  endif %}
-{%  if container.command is defined %}
+{%  if container.command is defined and container.command %}
 {{ shorthand('command', container.command)}}
 {%- endif %}
-{%  if container.cap_add is defined %}
+{%  if container.cap_add is defined and container.cap_add %}
 {{ shorthand('cap_add', container.cap_add)}}
 {%- endif %}
-{%  if container.cap_drop is defined %}
+{%  if container.cap_drop is defined and container.cap_drop %}
 {{ shorthand('cap_drop', container.cap_drop)}}
 {%- endif %}
-{%  if container.sysctls is defined %}
+{%  if container.sysctls is defined and container.sysctls %}
 {%   call(sysctl) shorthand('sysctls', container.sysctls) %}
 {%    if sysctl is mapping %}
 "{{ sysctl.name }}={{ sysctl.value }}"
@@ -52,10 +52,10 @@ services:
 {%-   endif %}
 {%   endcall %}
 {%  endif %}
-{%  if container.expose is defined %}
+{%  if container.expose is defined and container.expose %}
 {{ shorthand('expose', container.expose)}}
 {%- endif %}
-{%  if container.ports is defined %}
+{%  if container.ports is defined and container.ports %}
 {%   call(port) shorthand('ports', container.ports) %}
 {%    if port is mapping %}
 "{% if port.ip is defined %}{{ port.ip }}:{% endif %}{{ port.host | default(port.port) }}:{{ port.container | default(port.port) }}{% if port.protocol is defined %}/{{ port.protocol }}{% endif %}"
@@ -64,7 +64,7 @@ services:
 {%-   endif %}
 {%   endcall %}
 {%  endif %}
-{%  if container.devices is defined %}
+{%  if container.devices is defined and container.devices %}
 {%   call(device) shorthand('devices', container.devices) %}
 {%    if device is mapping %}
 "{{ device.source }}:{{ device.target }}"
@@ -73,7 +73,7 @@ services:
 {%-   endif %}
 {%   endcall %}
 {%  endif %}
-{%  if container.volumes is defined %}
+{%  if container.volumes is defined and container.volumes %}
 {%   call(volume) shorthand('volumes', container.volumes) %}
 {%    if volume is mapping -%}
         type: {{ volume.type | default('bind') }}
@@ -89,12 +89,12 @@ services:
 {%-   endif %}
 {%   endcall %}
 {%  endif %}
-{%  if container.networks is defined %}
+{%  if container.networks is defined and container.networks %}
 {{ shorthand('networks', container.networks)}}
 {%- elif container.network_mode is defined %}
     network_mode: {{ container.network_mode }}
 {%  endif %}
-{%  if container.environment is defined %}
+{%  if container.environment is defined and container.environment %}
 {%   call(env) shorthand('environment', container.environment) %}
 {%    if env is mapping %}
 "{{ env.name }}={{ env.value | replace("\"", "\\\"") }}"
@@ -106,7 +106,7 @@ services:
 {%  if container.restart is defined %}
     restart: {{ container.restart }}
 {%  endif %}
-{%  if container.labels is defined %}
+{%  if container.labels is defined and container.labels %}
 {%   call(label) shorthand('labels', container.labels) %}
 {%    if label is mapping %}
 "{{ label.name }}{% if label.value is defined %}={{ label.value }}{% endif %}"
@@ -134,7 +134,7 @@ volumes:
       {{ opt }}: {{ value }}
 {%    endfor %}
 {%   endif %}
-{%   if volume.labels is defined %}
+{%   if volume.labels is defined and volume.labels %}
 {%    call(label) shorthand('labels', volume.labels) %}
 {%     if label is mapping %}
 "{{ label.name }}{% if label.value is defined %}={{ label.value }}{% endif %}"
@@ -163,7 +163,7 @@ networks:
       {{ opt }}: {{ value }}
 {%    endfor %}
 {%   endif %}
-{%   if network.labels is defined %}
+{%   if network.labels is defined and network.labels %}
 {%    call(label) shorthand('labels', network.labels) %}
 {%     if label is mapping %}
 "{{ label.name }}{% if label.value is defined %}={{ label.value }}{% endif %}"
