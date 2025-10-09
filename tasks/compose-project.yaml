@@ -79,7 +79,6 @@
           loop_control:
             loop_var: volume
           when:
-            - volume.file is defined
             - (volume.type | default('bind')) == 'bind'
             - volume.create | default(true)
       when: _docker_compose_create_mounts
