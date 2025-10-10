@@ -15,8 +15,8 @@ docker_compose_projects: []
 
 docker_compose_project_owner: root
 
-docker_compose_project_group: root
+docker_compose_project_group: docker
 
-docker_compose_project_mode: '644'
+docker_compose_project_mode: '640'
 
-docker_compose_project_dir_mode: '755'
+docker_compose_project_dir_mode: '750'
