@@ -102,6 +102,7 @@
             owner: "{{ volume.owner | default(_docker_compose_project_bind_file_owner) }}"
             group: "{{ volume.group | default(_docker_compose_project_bind_file_group) }}"
             mode: "{{ volume.mode | default(_docker_compose_project_bind_file_mode) }}"
+            remote_src: "{{ volume.remote | default(false) }}"
           loop: "{{ _docker_compose_bind_mounts | selectattr('file', 'defined') | rejectattr('template', 'defined') }}"
           loop_control:
             loop_var: volume
