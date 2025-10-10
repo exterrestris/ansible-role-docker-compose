@@ -83,6 +83,13 @@
             - volume.create | default(true)
       when: _docker_compose_create_mounts
 
+    - name: create env file
+      ansible.builtin.include_tasks: create-env-file.yaml
+      loop: "{{ _docker_compose_containers | selectattr('env_file', 'defined') }}"
+      loop_control:
+        label: "{{ container.service_name }}"
+        loop_var: container
+
     - name: start docker compose
       community.docker.docker_compose_v2:
         state: present

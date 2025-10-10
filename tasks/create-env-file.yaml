@@ -1,0 +1,39 @@
+---
+- name: get env files for container
+  set_fact:
+    _env_files: "{{ container.env_file if container.env_file is sequence else [ container.env_file ] }}"
+
+- name: create env file from template
+  ansible.builtin.template:
+    src: "{{ env_file.template }}"
+    dest: "{{ env_file.source if (env_file.source | default('')).startswith('/') else _docker_compose_project_dir ~ '/' ~ env_file.source | default(container.service_name ~ '.env') }}"
+    owner: "{{ env_file.owner | default(_docker_compose_project_env_file_owner) }}"
+    group: "{{ env_file.group | default(_docker_compose_project_env_file_group) }}"
+    mode: "{{ env_file.mode | default(_docker_compose_project_env_file_mode) }}"
+  loop: "{{ _env_files | selectattr('template', 'defined') | rejectattr('file', 'defined') | rejectattr('data', 'defined') }}"
+  loop_control:
+    loop_var: env_file
+
+- name: create env file from data
+  ansible.builtin.blockinfile:
+    path: "{{ env_file.source if (env_file.source | default('')).startswith('/') else _docker_compose_project_dir ~ '/' ~ env_file.source | default(container.service_name ~ '.env') }}"
+    block: "{{ env_file.data }}"
+    owner: "{{ env_file.owner | default(_docker_compose_project_env_file_owner) }}"
+    group: "{{ env_file.group | default(_docker_compose_project_env_file_group) }}"
+    mode: "{{ env_file.mode | default(_docker_compose_project_env_file_mode) }}"
+    create: "{{ env_file.create | default(true) }}"
+  loop: "{{ _env_files | selectattr('data', 'defined') | rejectattr('file', 'defined') | rejectattr('template', 'defined') }}"
+  loop_control:
+    loop_var: env_file
+  no_log: "{{ env_file.sensitive | default(true) }}"
+
+- name: copy env file from source
+  ansible.builtin.copy:
+    src: "{{ env_file.file }}"
+    dest: "{{ env_file.source if (env_file.source | default('')).startswith('/') else _docker_compose_project_dir ~ '/' ~ env_file.source | default(container.service_name ~ '.env') }}"
+    owner: "{{ env_file.owner | default(_docker_compose_project_env_file_owner) }}"
+    group: "{{ env_file.group | default(_docker_compose_project_env_file_group) }}"
+    mode: "{{ env_file.mode | default(_docker_compose_project_env_file_mode) }}"
+  loop: "{{ _env_files | selectattr('file', 'defined') | rejectattr('template', 'defined') | rejectattr('data', 'defined') }}"
+  loop_control:
+    loop_var: env_file

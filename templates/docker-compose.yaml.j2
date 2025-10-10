@@ -93,6 +93,19 @@ services:
 {%- elif container.network_mode is defined %}
     network_mode: {{ container.network_mode }}
 {%  endif %}
+{%  if container.env_file is defined and container.env_file %}
+{%   call(env_file) shorthand('env_file', container.env_file) %}
+{%    if env_file is mapping %}
+{%     if env_file.source is defined %}
+{{ env_file.source if env_file.source.startswith('/') else _docker_compose_project_dir ~ '/' ~ env_file.source }}
+{%-    else %}
+{{ _docker_compose_project_dir ~ '/' ~ container.service_name ~ '.env' }}
+{%-    endif %}
+{%-   else %}
+{{ env_file }}
+{%-   endif %}
+{%   endcall %}
+{%  endif %}
 {%  if container.environment is defined and container.environment %}
 {%   call(env) shorthand('environment', container.environment) %}
 {%    if env is mapping %}
