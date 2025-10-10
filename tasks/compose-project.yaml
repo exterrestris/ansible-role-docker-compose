@@ -24,21 +24,20 @@
       loop: "{{ _docker_compose_containers }}"
       loop_control:
         loop_var: container
+        label: "{{ { 'service': container.service_name, 'image': container.image } }}"
       when: _docker_compose_pull_images
 
     - name: create volume bind mounts
       block:
-        - set_fact:
-            _docker_compose_bind_mounts: "{{ _docker_compose_containers
-                                            | selectattr('volumes', 'defined')
-                                            | map(attribute='volumes')
-                                            | flatten
-                                            | selectattr('source', 'defined') }}"
-
-        - set_fact:
-            _docker_compose_bind_directories: "{{ _docker_compose_bind_mounts | rejectattr('template', 'defined') | rejectattr('file', 'defined') }}"
-            _docker_compose_bind_templates: "{{ _docker_compose_bind_mounts | selectattr('template', 'defined') | rejectattr('file', 'defined') }}"
-            _docker_compose_bind_files: "{{ _docker_compose_bind_mounts | selectattr('file', 'defined') | rejectattr('template', 'defined') }}"
+        - name: get volume bind mounts for container
+          ansible.builtin.set_fact:
+            _docker_compose_bind_mounts: "{{ _docker_compose_bind_mounts + [ volume | combine({'source': volume.source if volume.source.startswith('/') else _docker_compose_project_dir ~ '/' ~ volume.source })] }}"
+          loop: "{{ _docker_compose_containers | selectattr('volumes', 'defined') | map(attribute='volumes') | flatten | selectattr('source', 'defined') }}"
+          loop_control:
+            loop_var: volume
+            label: "{{ volume.source if volume.source.startswith('/') else _docker_compose_project_dir ~ '/' ~ volume.source }}"
+          vars:
+            _docker_compose_bind_mounts: []
 
         - name: bind directory
           ansible.builtin.file:
@@ -47,9 +46,10 @@
             owner: "{{ volume.owner | default(_docker_compose_project_bind_file_owner) }}"
             group: "{{ volume.group | default(_docker_compose_project_bind_file_group) }}"
             mode: "{{ volume.mode | default(_docker_compose_project_bind_file_mode) }}"
-          loop: "{{ _docker_compose_bind_directories }}"
+          loop: "{{ _docker_compose_bind_mounts | rejectattr('template', 'defined') | rejectattr('file', 'defined') }}"
           loop_control:
             loop_var: volume
+            label: "{{ volume.source }}"
           when:
             - (volume.type | default('bind')) == 'bind'
             - volume.create | default(true)
@@ -61,9 +61,10 @@
             owner: "{{ volume.owner | default(_docker_compose_project_bind_file_owner) }}"
             group: "{{ volume.group | default(_docker_compose_project_bind_file_group) }}"
             mode: "{{ volume.mode | default(_docker_compose_project_bind_file_mode) }}"
-          loop: "{{ _docker_compose_bind_templates }}"
+          loop: "{{ _docker_compose_bind_mounts | selectattr('template', 'defined') | rejectattr('file', 'defined') }}"
           loop_control:
             loop_var: volume
+            label: "{{ volume.source }}"
           when:
             - (volume.type | default('bind')) == 'bind'
             - volume.create | default(true)
@@ -75,9 +76,10 @@
             owner: "{{ volume.owner | default(_docker_compose_project_bind_file_owner) }}"
             group: "{{ volume.group | default(_docker_compose_project_bind_file_group) }}"
             mode: "{{ volume.mode | default(_docker_compose_project_bind_file_mode) }}"
-          loop: "{{ _docker_compose_bind_files }}"
+          loop: "{{ _docker_compose_bind_mounts | selectattr('file', 'defined') | rejectattr('template', 'defined') }}"
           loop_control:
             loop_var: volume
+            label: "{{ volume.source }}"
           when:
             - (volume.type | default('bind')) == 'bind'
             - volume.create | default(true)

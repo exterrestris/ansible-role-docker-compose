@@ -21,6 +21,7 @@
   loop: "{{ docker_compose_projects }}"
   loop_control:
     loop_var: project
+    label: "{{ project.project_dir }}"
   when: docker_compose_projects | length > 0
 
 - name: generate single docker compose file
