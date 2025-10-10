@@ -20,3 +20,9 @@ docker_compose_project_group: docker
 docker_compose_project_mode: '640'
 
 docker_compose_project_dir_mode: '750'
+
+docker_compose_project_bind_file_owner: "{{ docker_compose_project_owner }}"
+
+docker_compose_project_bind_file_group: "{{ docker_compose_project_group }}"
+
+docker_compose_project_bind_file_mode: "{{ docker_compose_project_mode }}"
