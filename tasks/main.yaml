@@ -1,6 +1,7 @@
 - name: generate docker compose files
   include_tasks: compose-project.yaml
   vars:
+    _docker_compose_compose_file: "{{ project.compose_file | default(docker_compose_compose_file) }}"
     _docker_compose_project_dir: "{{ project.project_dir }}"
     _docker_compose_project_label: "{{ project.project_label | default(project.project_dir) ~ ' project' }}"
     _docker_compose_project_owner: "{{ project.project_owner | default(docker_compose_project_owner) }}"
@@ -28,6 +29,7 @@
 - name: generate docker compose file
   include_tasks: compose-project.yaml
   vars:
+    _docker_compose_compose_file: "{{ docker_compose_compose_file }}"
     _docker_compose_project_dir: "{{ docker_compose_project_dir }}"
     _docker_compose_project_label: "project"
     _docker_compose_project_owner: "{{ docker_compose_project_owner }}"

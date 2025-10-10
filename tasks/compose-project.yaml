@@ -11,7 +11,7 @@
     - name: generate {{ _docker_compose_project_label }} compose file
       ansible.builtin.template:
         src: docker-compose.yaml.j2
-        dest: "{{ _docker_compose_project_dir }}/docker-compose.yaml"
+        dest: "{{ _docker_compose_project_dir }}/{{ _docker_compose_compose_file }}"
         owner: "{{ _docker_compose_project_owner }}"
         group: "{{ _docker_compose_project_group }}"
         mode: "{{ _docker_compose_project_mode }}"
@@ -95,5 +95,7 @@
       community.docker.docker_compose_v2:
         state: present
         project_src: "{{ _docker_compose_project_dir }}"
+        files:
+          - "{{ _docker_compose_compose_file }}"
       when: _docker_compose_autostart
   when: _docker_compose_containers | length > 0
