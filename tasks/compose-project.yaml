@@ -46,6 +46,8 @@
           loop_control:
             loop_var: volume
             label: "{{ volume.source if volume.source.startswith('/') else _docker_compose_project_dir ~ '/' ~ volume.source }}"
+          when:
+            - (volume.type | default('bind')) in ['bind', 'directory', 'file']
           vars:
             _docker_compose_bind_mounts: []
 
@@ -61,8 +63,23 @@
             loop_var: volume
             label: "{{ volume.source }}"
           when:
-            - (volume.type | default('bind')) == 'bind'
-            - volume.create | default(true)
+            - (volume.type | default('directory')) == 'directory'
+
+        - name: bind {{ _docker_compose_project_label }} files
+          ansible.builtin.file:
+            dest: "{{ volume.source if volume.source.startswith('/') else _docker_compose_project_dir ~ '/' ~ volume.source }}"
+            state: file
+            owner: "{{ volume.owner | default(_docker_compose_project_bind_file_owner) }}"
+            group: "{{ volume.group | default(_docker_compose_project_bind_file_group) }}"
+            mode: "{{ volume.mode | default(_docker_compose_project_bind_file_mode) }}"
+            modification_time: preserve
+            access_time: preserve
+          loop: "{{ _docker_compose_bind_mounts | rejectattr('template', 'defined') | rejectattr('file', 'defined') }}"
+          loop_control:
+            loop_var: volume
+            label: "{{ volume.source }}"
+          when:
+            - (volume.type | default('directory')) in ['file', 'bind']
 
         - name: bind {{ _docker_compose_project_label }} files from templates
           ansible.builtin.template:
@@ -76,8 +93,7 @@
             loop_var: volume
             label: "{{ volume.source }}"
           when:
-            - (volume.type | default('bind')) == 'bind'
-            - volume.create | default(true)
+            - (volume.type | default('file')) == 'file'
 
         - name: bind {{ _docker_compose_project_label }} files from sources
           ansible.builtin.copy:
@@ -91,8 +107,7 @@
             loop_var: volume
             label: "{{ volume.source }}"
           when:
-            - (volume.type | default('bind')) == 'bind'
-            - volume.create | default(true)
+            - (volume.type | default('file')) == 'file'
       when: _docker_compose_create_mounts
 
     - name: create {{ _docker_compose_project_label }} env files

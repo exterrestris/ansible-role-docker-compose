@@ -79,7 +79,7 @@ services:
 {%  if container.volumes is defined and container.volumes %}
 {%   call(volume) shorthand('volumes', container.volumes) %}
 {%    if volume is mapping -%}
-        type: {{ volume.type | default('bind') }}
+        type: {{ (volume.type | default('bind')) if (volume.type | default('bind')) not in ['directory', 'file'] else 'bind' }}
 {%     if (volume.type | default('bind')) != "tmpfs" %}
         source: {{ volume.source if (volume.source.startswith('/') or (volume.type | default('bind')) == "volume") else _docker_compose_project_dir ~ '/' ~ volume.source }}
 {%     endif %}
