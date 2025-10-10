@@ -1,5 +1,5 @@
 ---
-- name: get env files for container
+- name: determine {{ _docker_compose_project_label }} env files
   ansible.builtin.set_fact:
     _env_files: "{{ _env_files + [ env_file | combine({'source': env_file.source if (env_file.source | default('')).startswith('/') else _docker_compose_project_dir ~ '/' ~ env_file.source | default(container.service_name ~ '.env') })] }}"
   loop: "{{ container.env_file if container.env_file is sequence else [ container.env_file ] }}"
@@ -9,7 +9,7 @@
   vars:
     _env_files: []
 
-- name: create env file from template
+- name: create {{ _docker_compose_project_label }} env files from templates
   ansible.builtin.template:
     src: "{{ env_file.template }}"
     dest: "{{ env_file.source }}"
@@ -21,7 +21,7 @@
     loop_var: env_file
     label: "{{ env_file.source }}"
 
-- name: create env file from data
+- name: create {{ _docker_compose_project_label }} env files from data
   ansible.builtin.blockinfile:
     path: "{{ env_file.source }}"
     block: "{{ env_file.data }}"
@@ -34,7 +34,7 @@
     loop_var: env_file
     label: "{{ env_file.source }}"
 
-- name: copy env file from source
+- name: copy {{ _docker_compose_project_label }} env files from sources
   ansible.builtin.copy:
     src: "{{ env_file.file }}"
     dest: "{{ env_file.source }}"

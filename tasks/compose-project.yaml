@@ -1,5 +1,5 @@
 ---
-- name: create project directory
+- name: create {{ _docker_compose_project_label }} directory
   file:
     dest: "{{ _docker_compose_project_dir }}"
     state: directory
@@ -8,7 +8,7 @@
     mode: "{{ _docker_compose_project_dir_mode }}"
 
 - block:
-    - name: generate docker-compose
+    - name: generate {{ _docker_compose_project_label }} compose file
       ansible.builtin.template:
         src: docker-compose.yaml.j2
         dest: "{{ _docker_compose_project_dir }}/docker-compose.yaml"
@@ -16,7 +16,7 @@
         group: "{{ _docker_compose_project_group }}"
         mode: "{{ _docker_compose_project_mode }}"
 
-    - name: pull docker images
+    - name: pull {{ _docker_compose_project_label }} docker images
       community.docker.docker_image:
         name: "{{ container.image.name if container.image is mapping else container.image }}"
         tag: "{{ container.image.tag | default('latest') if container.image is mapping else 'latest' }}"
@@ -27,9 +27,8 @@
         label: "{{ { 'service': container.service_name, 'image': container.image } }}"
       when: _docker_compose_pull_images
 
-    - name: create volume bind mounts
-      block:
-        - name: get volume bind mounts for container
+    - block:
+        - name: determine {{ _docker_compose_project_label }} volume bind mounts
           ansible.builtin.set_fact:
             _docker_compose_bind_mounts: "{{ _docker_compose_bind_mounts + [ volume | combine({'source': volume.source if volume.source.startswith('/') else _docker_compose_project_dir ~ '/' ~ volume.source })] }}"
           loop: "{{ _docker_compose_containers | selectattr('volumes', 'defined') | map(attribute='volumes') | flatten | selectattr('source', 'defined') }}"
@@ -39,7 +38,7 @@
           vars:
             _docker_compose_bind_mounts: []
 
-        - name: bind directory
+        - name: bind {{ _docker_compose_project_label }} directories
           ansible.builtin.file:
             dest: "{{ volume.source if volume.source.startswith('/') else _docker_compose_project_dir ~ '/' ~ volume.source }}"
             state: directory
@@ -54,7 +53,7 @@
             - (volume.type | default('bind')) == 'bind'
             - volume.create | default(true)
 
-        - name: bind file from template
+        - name: bind {{ _docker_compose_project_label }} files from templates
           ansible.builtin.template:
             src: "{{ volume.template }}"
             dest: "{{ volume.source if volume.source.startswith('/') else _docker_compose_project_dir ~ '/' ~ volume.source }}"
@@ -69,7 +68,7 @@
             - (volume.type | default('bind')) == 'bind'
             - volume.create | default(true)
 
-        - name: bind file from source
+        - name: bind {{ _docker_compose_project_label }} files from sources
           ansible.builtin.copy:
             src: "{{ volume.file }}"
             dest: "{{ volume.source if volume.source.startswith('/') else _docker_compose_project_dir ~ '/' ~ volume.source }}"
@@ -85,14 +84,14 @@
             - volume.create | default(true)
       when: _docker_compose_create_mounts
 
-    - name: create env file
+    - name: create {{ _docker_compose_project_label }} env files
       ansible.builtin.include_tasks: create-env-file.yaml
       loop: "{{ _docker_compose_containers | selectattr('env_file', 'defined') }}"
       loop_control:
         label: "{{ container.service_name }}"
         loop_var: container
 
-    - name: start docker compose
+    - name: start {{ _docker_compose_project_label }} 
       community.docker.docker_compose_v2:
         state: present
         project_src: "{{ _docker_compose_project_dir }}"
