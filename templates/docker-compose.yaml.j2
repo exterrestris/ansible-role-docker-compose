@@ -1,7 +1,11 @@
-{% macro shorthand(property, values) %}
+{% macro shorthand(property, values, mapping_key, mapping_value) %}
     {{ property }}:
 {%  if values is string %}
       - "{{ values }}"
+{%  elif values is mapping %}
+{%   for key, value in values.items() %}
+      - {{ caller({mapping_key: key, mapping_value: value}) if caller is defined else '"' ~ key ~ '=' ~ value ~ '"' }}
+{%   endfor %}
 {%  elif values | length > 0 %}
 {%   for value in values %}
       - {{ caller(value) if caller is defined else '"' ~ value ~ '"' }}
@@ -107,7 +111,7 @@ services:
 {%   endcall %}
 {%  endif %}
 {%  if container.environment is defined and container.environment %}
-{%   call(env) shorthand('environment', container.environment) %}
+{%   call(env) shorthand('environment', container.environment, 'name', 'value') %}
 {%    if env is mapping %}
 "{{ env.name }}={{ env.value | replace("\"", "\\\"") }}"
 {%-   else %}
