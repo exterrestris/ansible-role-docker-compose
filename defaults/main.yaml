@@ -34,3 +34,11 @@ docker_compose_project_env_file_owner: "{{ docker_compose_project_owner }}"
 docker_compose_project_env_file_group: "{{ docker_compose_project_group }}"
 
 docker_compose_project_env_file_mode: "{{ docker_compose_project_mode }}"
+
+docker_compose_remove_other_compose_files: yes
+
+docker_compose_remove_compose_files:
+  - compose.yaml
+  - compose.yml
+  - docker-compose.yaml
+  - docker-compose.yml

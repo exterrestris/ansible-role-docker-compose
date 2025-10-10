@@ -16,6 +16,17 @@
         group: "{{ _docker_compose_project_group }}"
         mode: "{{ _docker_compose_project_mode }}"
 
+    - name: remove previous {{ _docker_compose_project_label }} compose files
+      ansible.builtin.file:
+        dest: "{{ _docker_compose_project_dir }}/{{ compose_file }}"
+        state: absent
+      loop: "{{ docker_compose_remove_compose_files }}"
+      loop_control:
+        loop_var: compose_file
+      when:
+        - docker_compose_remove_other_compose_files
+        - compose_file != _docker_compose_compose_file
+
     - name: pull {{ _docker_compose_project_label }} docker images
       community.docker.docker_image:
         name: "{{ container.image.name if container.image is mapping else container.image }}"
