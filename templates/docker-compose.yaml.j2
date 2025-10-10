@@ -29,10 +29,10 @@ services:
 {%  endif %}
 {%  if container.user is defined %}
 {%   if container.user is mapping %}
-    user: "{{ container.user.user }}{% if container.user.group is defined %}:{{ container.user.group }}{% endif %}"
+    user: {{ container.user.user }}{% if container.user.group is defined %}:{{ container.user.group }}{% endif %}
 {%   else %}
-    user: "{{ container.user }}"
-{%   endif %}
+    user: {{ container.user }}
+{%   endif +%}
 {%  endif %}
 {%  if container.hostname is defined %}
     hostname: {{ container.hostname }}
