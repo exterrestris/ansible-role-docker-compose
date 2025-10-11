@@ -46,6 +46,7 @@
     owner: "{{ env_file.owner | default(_docker_compose_project_env_file_owner) }}"
     group: "{{ env_file.group | default(_docker_compose_project_env_file_group) }}"
     mode: "{{ env_file.mode | default(_docker_compose_project_env_file_mode) }}"
+    remote_src: "{{ env_file.remote | default(false) }}"
   loop: "{{ _env_files | selectattr('file', 'defined') | rejectattr('template', 'defined') | rejectattr('data', 'defined') | rejectattr('lines', 'defined') }}"
   loop_control:
     loop_var: env_file
