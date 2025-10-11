@@ -76,8 +76,8 @@ services:
 {%-   endif %}
 {%   endcall %}
 {%  endif %}
-{%  if container.volumes is defined and container.volumes %}
-{%   call(volume) shorthand('volumes', container.volumes) %}
+{%  if (container.volumes is defined and container.volumes) or (container.user is defined and (container.user.bind_etc | default(false))) %}
+{%   call(volume) shorthand('volumes', container.volumes | default([]) | union(docker_compose_bind_etc_volumes if (container.user is defined and (container.user.bind_etc | default(false))) else [])) %}
 {%    if volume is mapping -%}
         type: {{ (volume.type | default('bind')) if (volume.type | default('bind')) not in ['directory', 'file'] else 'bind' }}
 {%     if (volume.type | default('bind')) != "tmpfs" %}

@@ -1,0 +1,12 @@
+---
+docker_compose_bind_etc_volumes:
+  - source: /etc/passwd
+    target: /etc/passwd
+    type: file
+    read_only: yes
+    create: no
+  - source: /etc/group
+    target: /etc/group
+    type: file
+    read_only: yes
+    create: no
