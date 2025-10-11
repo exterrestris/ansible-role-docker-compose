@@ -16,7 +16,7 @@
     owner: "{{ env_file.owner | default(_docker_compose_project_env_file_owner) }}"
     group: "{{ env_file.group | default(_docker_compose_project_env_file_group) }}"
     mode: "{{ env_file.mode | default(_docker_compose_project_env_file_mode) }}"
-  loop: "{{ _env_files | selectattr('template', 'defined') | rejectattr('file', 'defined') | rejectattr('data', 'defined') }}"
+  loop: "{{ _env_files | selectattr('template', 'defined') | rejectattr('file', 'defined') | rejectattr('data', 'defined') | rejectattr('lines', 'defined') }}"
   loop_control:
     loop_var: env_file
     label: "{{ env_file.source }}"
@@ -24,15 +24,20 @@
 - name: create {{ _docker_compose_project_label }} env files from data
   ansible.builtin.blockinfile:
     path: "{{ env_file.source }}"
-    block: "{{ env_file.data }}"
+    block: "{{ env_file.data if env_file.data is defined else env_file.lines | join('\n') }}"
     owner: "{{ env_file.owner | default(_docker_compose_project_env_file_owner) }}"
     group: "{{ env_file.group | default(_docker_compose_project_env_file_group) }}"
     mode: "{{ env_file.mode | default(_docker_compose_project_env_file_mode) }}"
     create: "{{ env_file.create | default(true) }}"
-  loop: "{{ _env_files | selectattr('data', 'defined') | rejectattr('file', 'defined') | rejectattr('template', 'defined') }}"
+  loop: "{{ []
+          | union(_data_env_files | selectattr('data', 'defined') | rejectattr('lines', 'defined'))
+          | union(_data_env_files | selectattr('lines', 'defined') | rejectattr('data', 'defined'))
+        }}"
   loop_control:
     loop_var: env_file
     label: "{{ env_file.source }}"
+  vars:
+    _data_env_files: "{{ _env_files | rejectattr('file', 'defined') | rejectattr('template', 'defined') }}"
 
 - name: copy {{ _docker_compose_project_label }} env files from sources
   ansible.builtin.copy:
@@ -41,7 +46,7 @@
     owner: "{{ env_file.owner | default(_docker_compose_project_env_file_owner) }}"
     group: "{{ env_file.group | default(_docker_compose_project_env_file_group) }}"
     mode: "{{ env_file.mode | default(_docker_compose_project_env_file_mode) }}"
-  loop: "{{ _env_files | selectattr('file', 'defined') | rejectattr('template', 'defined') | rejectattr('data', 'defined') }}"
+  loop: "{{ _env_files | selectattr('file', 'defined') | rejectattr('template', 'defined') | rejectattr('data', 'defined') | rejectattr('lines', 'defined') }}"
   loop_control:
     loop_var: env_file
     label: "{{ env_file.source }}"
