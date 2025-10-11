@@ -9,7 +9,9 @@ docker_compose_autostart: yes
 
 docker_compose_pull_images: yes
 
-docker_compose_create_mounts: yes
+docker_compose_process_bind_mounts: yes
+
+docker_compose_create_bind_mounts: yes
 
 docker_compose_projects: []
 
