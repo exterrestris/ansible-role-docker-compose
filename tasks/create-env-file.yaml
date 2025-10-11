@@ -1,29 +1,29 @@
 ---
 - name: determine {{ _docker_compose_project_label }} env files
   ansible.builtin.set_fact:
-    _env_files: "{{ _env_files + [ env_file | combine({'source': env_file.source if (env_file.source | default('')).startswith('/') else _docker_compose_project_dir ~ '/' ~ env_file.source | default(container.service_name ~ '.env') })] }}"
+    _env_files: "{{ _env_files + [ env_file | combine({'path': env_file.path if (env_file.path | default('')).startswith('/') else _docker_compose_project_dir ~ '/' ~ env_file.path | default(container.service_name ~ '.env') })] }}"
   loop: "{{ container.env_file if container.env_file is sequence else [ container.env_file ] }}"
   loop_control:
     loop_var: env_file
-    label: "{{ env_file.source if (env_file.source | default('')).startswith('/') else _docker_compose_project_dir ~ '/' ~ env_file.source | default(container.service_name ~ '.env') }}"
+    label: "{{ env_file.path if (env_file.path | default('')).startswith('/') else _docker_compose_project_dir ~ '/' ~ env_file.path | default(container.service_name ~ '.env') }}"
   vars:
     _env_files: []
 
 - name: create {{ _docker_compose_project_label }} env files from templates
   ansible.builtin.template:
     src: "{{ env_file.template }}"
-    dest: "{{ env_file.source }}"
+    dest: "{{ env_file.path }}"
     owner: "{{ env_file.owner | default(_docker_compose_project_env_file_owner) }}"
     group: "{{ env_file.group | default(_docker_compose_project_env_file_group) }}"
     mode: "{{ env_file.mode | default(_docker_compose_project_env_file_mode) }}"
   loop: "{{ _env_files | selectattr('template', 'defined') | rejectattr('file', 'defined') | rejectattr('data', 'defined') | rejectattr('lines', 'defined') }}"
   loop_control:
     loop_var: env_file
-    label: "{{ env_file.source }}"
+    label: "{{ env_file.path }}"
 
 - name: create {{ _docker_compose_project_label }} env files from data
   ansible.builtin.blockinfile:
-    path: "{{ env_file.source }}"
+    path: "{{ env_file.path }}"
     block: "{{ env_file.data if env_file.data is defined else env_file.lines | join('\n') }}"
     owner: "{{ env_file.owner | default(_docker_compose_project_env_file_owner) }}"
     group: "{{ env_file.group | default(_docker_compose_project_env_file_group) }}"
@@ -35,18 +35,18 @@
         }}"
   loop_control:
     loop_var: env_file
-    label: "{{ env_file.source }}"
+    label: "{{ env_file.path }}"
   vars:
     _data_env_files: "{{ _env_files | rejectattr('file', 'defined') | rejectattr('template', 'defined') }}"
 
-- name: copy {{ _docker_compose_project_label }} env files from sources
+- name: copy {{ _docker_compose_project_label }} env files from source files
   ansible.builtin.copy:
     src: "{{ env_file.file }}"
-    dest: "{{ env_file.source }}"
+    dest: "{{ env_file.path }}"
     owner: "{{ env_file.owner | default(_docker_compose_project_env_file_owner) }}"
     group: "{{ env_file.group | default(_docker_compose_project_env_file_group) }}"
     mode: "{{ env_file.mode | default(_docker_compose_project_env_file_mode) }}"
   loop: "{{ _env_files | selectattr('file', 'defined') | rejectattr('template', 'defined') | rejectattr('data', 'defined') | rejectattr('lines', 'defined') }}"
   loop_control:
     loop_var: env_file
-    label: "{{ env_file.source }}"
+    label: "{{ env_file.path }}"
