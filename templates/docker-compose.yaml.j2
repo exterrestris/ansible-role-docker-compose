@@ -18,14 +18,31 @@ services:
 {%  if container.container_name is defined %}
     container_name: {{ container.container_name }}
 {%  endif %}
-{%  if container.image is mapping %}
-{%   if container.image.tag is defined %}
+{%  if container.image is defined %}
+{%   if container.image is mapping %}
+{%    if container.image.tag is defined %}
     image: {{ container.image.name }}:{{ container.image.tag }}
-{%   else %}
+{%    else %}
     image: {{ container.image.name }}
+{%    endif %}
+{%   else %}
+     image: {{ container.image }}
 {%   endif %}
-{%  else %}
-    image: {{ container.image }}
+{%  endif %}
+{%  if container.build is defined %}
+{%   if container.build | default('.') is mapping %}
+    build:
+{%    if container.build.context is defined and (container.build.context | default('.')).startswith('.') %}
+      context: {{ container.build.context | default('.') }}
+{%    else %}
+      context: ./{{ container.build.context }}
+{%    endif %}
+{%    if container.build.args is defined %}
+{{ shorthand('args', container.user.groups) | indent(2, '') }}
+{%-   endif %}
+{%   else %}
+    build: {{ container.build | default('.', true) }}
+{%   endif %}
 {%  endif %}
 {%  if container.user is defined %}
 {%   if container.user is mapping %}
