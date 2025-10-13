@@ -36,7 +36,7 @@
     loop_var: env_file
     label: "{{ env_file.path }}"
   when:
-    - "{{ env_file.create | default(true) }}"
+    - env_file.create | default(true)
   vars:
     _data_env_files: "{{ _env_files | rejectattr('file', 'defined') | rejectattr('template', 'defined') }}"
 

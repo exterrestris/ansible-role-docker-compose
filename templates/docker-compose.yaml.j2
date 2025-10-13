@@ -30,14 +30,14 @@ services:
 {%  if container.user is defined %}
 {%   if container.user is mapping %}
 {%    if container.user.user is defined %}
-    user: "{{ container.user.user }}{% if container.user.group is defined %}:{{ container.user.group }}{% endif %}"
-{%    endif +%}
+    user: {{ container.user.user }}{% if container.user.group is defined %}:{{ container.user.group }}{% endif +%}
+{%     if container.user.groups is defined and container.user.groups %}
+{{ shorthand('group_add', container.user.groups) -}}
+{%     endif %}
+{%    endif %}
 {%   else %}
-    user: "{{ container.user }}"
-{%   endif +%}
-{%-  if container.user.groups is defined and container.user.groups %}
-{{ shorthand('group_add', container.user.groups)}}
-{%-  endif %}
+    user: {{ container.user }}
+{%   endif %}
 {%  endif %}
 {%  if container.hostname is defined %}
     hostname: {{ container.hostname }}
@@ -118,7 +118,7 @@ services:
 {%  if container.environment is defined and container.environment %}
 {%   call(env) shorthand('environment', container.environment, 'name', 'value', '"') %}
 {%    if env is mapping %}
-{{ env.name }}="{{ env.value | replace("\"", "\\\"") }}"
+"{{ env.name }}={{ env.value | replace("\"", "\\\"") }}"
 {%-   else %}
 "{{ env | replace("\"", "\\\"") }}"
 {%-   endif %}
