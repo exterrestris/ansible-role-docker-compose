@@ -1,7 +1,9 @@
 ---
 - name: determine {{ _docker_compose_project_label }} build context root
   ansible.builtin.set_fact:
-    _build_context_root: "{{ (_docker_compose_project_dir ~ '/' ~ container.build.context | default('.')) | replace('/.', '') }}"
+    _build_context_root: >-
+      {{ (container.build.context | default('.')) if (container.build.context | default('.')).startswith('/')
+          else (_docker_compose_project_dir ~ '/' ~ (container.build.context | default('.'))) | replace('/.', '') }}
 
 - name: create {{ _docker_compose_project_label }} build context root
   ansible.builtin.file:
@@ -12,6 +14,19 @@
     mode: "{{ _docker_compose_project_dir_mode }}"
   when:
     - _build_context_root != _docker_compose_project_dir
+
+- name: create {{ _docker_compose_project_label }} build context from source directory
+  ansible.builtin.copy:
+    src: "{{ container.build.src }}/"
+    dest: "{{ _build_context_root }}"
+    owner: "{{ _docker_compose_project_owner }}"
+    group: "{{ _docker_compose_project_group }}"
+    mode: "{{ _docker_compose_project_dir_mode }}"
+    remote_src: "{{ context_file.remote | default(false) }}"
+  when:
+    - container.build.src is defined
+    - container.build.git is not defined
+    - container.build.files is not defined
 
 - block:
     - name: determine {{ _docker_compose_project_label }} build context files
@@ -68,6 +83,8 @@
         loop_var: context_file
         label: "{{ context_file.path }}"
   when:
+    - container.build.files is defined
+    - container.build.src is not defined
     - container.build.git is not defined
 
 - name: create {{ _docker_compose_project_label }} build context from git repo
@@ -77,3 +94,5 @@
     version: "{{ container.build.git.version | default('HEAD') }}"
   when:
     - container.build.git is defined
+    - container.build.src is not defined
+    - container.build.files is not defined
