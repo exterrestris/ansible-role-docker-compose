@@ -45,7 +45,7 @@
         label: "{{ container.service_name }}"
         loop_var: container
       when:
-        - container.build.context is defined or container.build.git is defined
+        - container.build.context is defined or container.build.src is defined or container.build.git is defined
 
     - name: process {{ _docker_compose_project_label }} bind mounts
       ansible.builtin.include_tasks: process-bind-mounts.yaml
