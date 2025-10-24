@@ -32,7 +32,7 @@ services:
 {%  if container.build is defined %}
 {%   if container.build | default('.') is mapping %}
     build:
-{%    if container.build.context is defined and (container.build.context | default('.')).startswith('.') %}
+{%    if (container.build.context | default('.')).startswith('.') %}
       context: {{ container.build.context | default('.') }}
 {%    else %}
       context: ./{{ container.build.context }}
