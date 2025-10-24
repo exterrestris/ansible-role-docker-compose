@@ -201,6 +201,32 @@ networks:
       {{ opt }}: {{ value }}
 {%    endfor %}
 {%   endif %}
+{%   if network.ipam is defined %}
+    ipam:
+{%    if network.ipam.driver is defined %}
+      driver: {{ network.ipam.driver }}
+{%    endif %}
+{%    if network.ipam.config is defined and network.ipam.config %}
+      config:
+{%     for config in network.ipam.config %}
+        - subnet: {{ config.subnet }}
+          ip_range: {{ config.ip_range }}
+          gateway: {{ config.gateway }}
+{%      if config.aux_addresses is defined %}
+          aux_addresses:
+{%       for opt, value in config.aux_addresses.items() %}
+            {{ opt }}: {{ value }}
+{%-      endfor %}
+{%-     endif %}
+{%-    endfor %}
+{%-   endif %}
+{%    if network.ipam.options is defined %}
+      options:
+{%     for opt, value in network.driver_opts.items() %}
+      {{ opt }}: {{ value }}
+{%     endfor %}
+{%    endif %}
+{%   endif %}
 {%   if network.labels is defined and network.labels %}
 {%    call(label) shorthand('labels', network.labels) %}
 {%     if label is mapping %}
