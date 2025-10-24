@@ -8,16 +8,17 @@
     label: "{{ volume.source if volume.source.startswith('/') else _docker_compose_project_dir ~ '/' ~ volume.source }}"
   when:
     - (volume.type | default('bind')) in ['bind', 'directory', 'file']
+    - volume.create | default(_docker_compose_create_bind_mounts)
   vars:
     _docker_compose_bind_mounts: []
 
 - name: bind {{ _docker_compose_project_label }} directories
   ansible.builtin.file:
     dest: "{{ volume.source if volume.source.startswith('/') else _docker_compose_project_dir ~ '/' ~ volume.source }}"
-    state: "{{ 'directory' if ((volume.type | default('directory')) == 'directory' and (volume.create | default(_docker_compose_create_bind_mounts))) else omit }}"
-    owner: "{{ (volume.owner | default(_docker_compose_project_bind_file_owner)) if (volume.create | default(_docker_compose_create_bind_mounts)) else omit }}"
-    group: "{{ (volume.group | default(_docker_compose_project_bind_file_group)) if (volume.create | default(_docker_compose_create_bind_mounts)) else omit }}"
-    mode: "{{ (volume.mode | default(_docker_compose_project_bind_file_mode)) if (volume.create | default(_docker_compose_create_bind_mounts)) else omit }}"
+    state: directory
+    owner: "{{ volume.owner | default(_docker_compose_project_bind_file_owner) }}"
+    group: "{{ volume.group | default(_docker_compose_project_bind_file_group) }}"
+    mode: "{{ volume.mode | default(_docker_compose_project_bind_file_mode) }}"
   loop: "{{ _docker_compose_bind_mounts | rejectattr('template', 'defined') | rejectattr('file', 'defined') | rejectattr('data', 'defined') | rejectattr('lines', 'defined') }}"
   loop_control:
     loop_var: volume
@@ -28,10 +29,10 @@
 - name: bind {{ _docker_compose_project_label }} files
   ansible.builtin.file:
     dest: "{{ volume.source if volume.source.startswith('/') else _docker_compose_project_dir ~ '/' ~ volume.source }}"
-    state: "{{ 'touch' if ((volume.type | default('directory')) == 'file' and (volume.create | default(_docker_compose_create_bind_mounts))) else omit }}"
-    owner: "{{ (volume.owner | default(_docker_compose_project_bind_file_owner)) if (volume.create | default(_docker_compose_create_bind_mounts)) else omit }}"
-    group: "{{ (volume.group | default(_docker_compose_project_bind_file_group)) if (volume.create | default(_docker_compose_create_bind_mounts)) else omit }}"
-    mode: "{{ (volume.mode | default(_docker_compose_project_bind_file_mode)) if (volume.create | default(_docker_compose_create_bind_mounts)) else omit }}"
+    state: "{{ 'touch' if ((volume.type | default('directory')) == 'file') else omit }}"
+    owner: "{{ volume.owner | default(_docker_compose_project_bind_file_owner) }}"
+    group: "{{ volume.group | default(_docker_compose_project_bind_file_group) }}"
+    mode: "{{ volume.mode | default(_docker_compose_project_bind_file_mode) }}"
     modification_time: preserve
     access_time: preserve
   loop: "{{ _docker_compose_bind_mounts | rejectattr('template', 'defined') | rejectattr('file', 'defined') | rejectattr('data', 'defined') | rejectattr('lines', 'defined') }}"
@@ -54,7 +55,6 @@
     label: "{{ volume.source }}"
   when:
     - (volume.type | default('file')) == 'file'
-    - volume.create | default(_docker_compose_create_bind_mounts)
 
 - name: create {{ _docker_compose_project_label }} files from data
   ansible.builtin.copy:
@@ -72,7 +72,6 @@
     label: "{{ volume.source }}"
   when:
     - (volume.type | default('file')) == 'file'
-    - volume.create | default(_docker_compose_create_bind_mounts)
   vars:
     _data_volumes: "{{ _docker_compose_bind_mounts | rejectattr('file', 'defined') | rejectattr('template', 'defined') }}"
 
@@ -90,4 +89,3 @@
     label: "{{ volume.source }}"
   when:
     - (volume.type | default('file')) == 'file'
-    - volume.create | default(_docker_compose_create_bind_mounts)
