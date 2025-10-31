@@ -1,4 +1,8 @@
 ---
+- name: reset variables
+  ansible.builtin.set_fact:
+    _docker_compose_bind_mounts: []
+
 - name: determine {{ _docker_compose_project_label }} volume bind mounts
   ansible.builtin.set_fact:
     _docker_compose_bind_mounts: "{{ _docker_compose_bind_mounts + [ volume | combine({'source': volume.source if volume.source.startswith('/') else _docker_compose_project_dir ~ '/' ~ volume.source })] }}"
@@ -9,8 +13,6 @@
   when:
     - (volume.type | default('bind')) in ['bind', 'directory', 'file']
     - volume.create | default(_docker_compose_create_bind_mounts)
-  vars:
-    _docker_compose_bind_mounts: []
 
 - name: bind {{ _docker_compose_project_label }} directories
   ansible.builtin.file:
