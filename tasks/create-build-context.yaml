@@ -1,4 +1,8 @@
 ---
+- name: reset variables
+  ansible.builtin.set_fact:
+    _build_context_root: []
+
 - name: determine {{ _docker_compose_project_label }} build context root
   ansible.builtin.set_fact:
     _build_context_root: >-

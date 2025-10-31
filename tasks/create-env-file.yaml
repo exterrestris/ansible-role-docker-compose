@@ -1,4 +1,8 @@
 ---
+- name: reset variables
+  ansible.builtin.set_fact:
+    _env_files: []
+
 - name: determine {{ _docker_compose_project_label }} env files
   ansible.builtin.set_fact:
     _env_files: "{{ _env_files + [ env_file | combine({'path': env_file.path if (env_file.path | default('')).startswith('/') else _docker_compose_project_dir ~ '/' ~ env_file.path | default(container.service_name ~ '.env') })] }}"
