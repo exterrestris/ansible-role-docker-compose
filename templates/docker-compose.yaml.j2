@@ -26,7 +26,7 @@ services:
     image: {{ container.image.name }}
 {%    endif %}
 {%   else %}
-     image: {{ container.image }}
+    image: {{ container.image }}
 {%   endif %}
 {%  endif %}
 {%  if container.build is defined %}
