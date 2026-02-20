@@ -3,69 +3,86 @@
   ansible.builtin.set_fact:
     _build_context_root: []
 
-- name: determine {{ _docker_compose_project_label }} build context root
+- name: determine {{ _project_label }} build context root
   ansible.builtin.set_fact:
     _build_context_root: >-
-      {{ (container.build.context | default('.')) if (container.build.context | default('.')).startswith('/')
-          else (_docker_compose_project_dir ~ '/' ~ (container.build.context | default('.'))) | replace('/.', '') }}
+      {{
+        (service.build.context | default('.'))
+          if (service.build.context | default('.')).startswith('/')
+          else (_project_dir ~ '/' ~ (service.build.context | default('.'))) | replace('/.', '')
+      }}
 
-- name: create {{ _docker_compose_project_label }} build context root
+- name: create {{ _project_label }} build context root
   ansible.builtin.file:
     dest: "{{ _build_context_root }}"
     state: 'directory'
-    owner: "{{ _docker_compose_project_owner }}"
-    group: "{{ _docker_compose_project_group }}"
-    mode: "{{ _docker_compose_project_dir_mode }}"
+    owner: "{{ _project_owner }}"
+    group: "{{ _project_group }}"
+    mode: "{{ _project_dir_mode }}"
   when:
-    - _build_context_root != _docker_compose_project_dir
+    - _build_context_root != _project_dir
 
-- name: create {{ _docker_compose_project_label }} build context from source directory
+- name: create {{ _project_label }} build context from source directory
   ansible.builtin.copy:
-    src: "{{ container.build.src }}/"
+    src: "{{ service.build.src }}/"
     dest: "{{ _build_context_root }}"
-    owner: "{{ _docker_compose_project_owner }}"
-    group: "{{ _docker_compose_project_group }}"
-    mode: "{{ _docker_compose_project_dir_mode }}"
+    owner: "{{ _project_owner }}"
+    group: "{{ _project_group }}"
+    mode: "{{ _project_dir_mode }}"
     remote_src: "{{ context_file.remote | default(false) }}"
   when:
-    - container.build.src is defined
-    - container.build.git is not defined
-    - container.build.files is not defined
+    - service.build.src is defined
+    - service.build.git is not defined
+    - service.build.files is not defined
 
 - block:
-    - name: determine {{ _docker_compose_project_label }} build context files
+    - name: determine {{ _project_label }} build context files
       ansible.builtin.set_fact:
-        _context_files: "{{ _context_files + [ context_file | combine({'path': _build_context_root ~ '/' ~ context_file.path })] }}"
-      loop: "{{ container.build.files }}"
+        _context_files: >-
+          {{
+            _context_files + [
+              context_file | combine({'path': _build_context_root ~ '/' ~ context_file.path })
+            ]
+          }}
+      loop: "{{ service.build.files }}"
       loop_control:
         loop_var: context_file
         label: "{{ context_file.path }}"
       vars:
         _context_files: []
 
-    - name: create {{ _docker_compose_project_label }} build context files from templates
+    - name: create {{ _project_label }} build context files from templates
       ansible.builtin.template:
         src: "{{ context_file.template }}"
         dest: "{{ context_file.path }}"
-        owner: "{{ context_file.owner | default(_docker_compose_project_owner) }}"
-        group: "{{ context_file.group | default(_docker_compose_project_group) }}"
-        mode: "{{ context_file.mode | default(_docker_compose_project_mode) }}"
-      loop: "{{ _context_files | selectattr('template', 'defined') | rejectattr('file', 'defined') | rejectattr('data', 'defined') | rejectattr('lines', 'defined') }}"
+        owner: "{{ context_file.owner | default(_project_owner) }}"
+        group: "{{ context_file.group | default(_project_group) }}"
+        mode: "{{ context_file.mode | default(_compose_file_mode) }}"
+      loop: >-
+        {{
+          _context_files
+          | selectattr('template', 'defined')
+          | rejectattr('file', 'defined')
+          | rejectattr('data', 'defined')
+          | rejectattr('lines', 'defined')
+        }}
       loop_control:
         loop_var: context_file
         label: "{{ context_file.path }}"
 
-    - name: create {{ _docker_compose_project_label }} build context files from data
+    - name: create {{ _project_label }} build context files from data
       ansible.builtin.copy:
         dest: "{{ context_file.path }}"
         content: "{{ context_file.data if context_file.data is defined else context_file.lines | join('\n') }}"
-        owner: "{{ context_file.owner | default(_docker_compose_project_owner) }}"
-        group: "{{ context_file.group | default(_docker_compose_project_group) }}"
-        mode: "{{ context_file.mode | default(_docker_compose_project_mode) }}"
-      loop: "{{ []
-              | union(_data_context_files | selectattr('data', 'defined') | rejectattr('lines', 'defined'))
-              | union(_data_context_files | selectattr('lines', 'defined') | rejectattr('data', 'defined'))
-            }}"
+        owner: "{{ context_file.owner | default(_project_owner) }}"
+        group: "{{ context_file.group | default(_project_group) }}"
+        mode: "{{ context_file.mode | default(_compose_file_mode) }}"
+      loop: >-
+        {{
+          []
+          | union(_data_context_files | selectattr('data', 'defined') | rejectattr('lines', 'defined'))
+          | union(_data_context_files | selectattr('lines', 'defined') | rejectattr('data', 'defined'))
+        }}
       loop_control:
         loop_var: context_file
         label: "{{ context_file.path }}"
@@ -74,29 +91,36 @@
       vars:
         _data_context_files: "{{ _context_files | rejectattr('file', 'defined') | rejectattr('template', 'defined') }}"
 
-    - name: copy {{ _docker_compose_project_label }} build context files from source files
+    - name: copy {{ _project_label }} build context files from source files
       ansible.builtin.copy:
         src: "{{ context_file.file }}"
         dest: "{{ context_file.path }}"
-        owner: "{{ context_file.owner | default(_docker_compose_project_owner) }}"
-        group: "{{ context_file.group | default(_docker_compose_project_group) }}"
-        mode: "{{ context_file.mode | default(_docker_compose_project_mode) }}"
+        owner: "{{ context_file.owner | default(_project_owner) }}"
+        group: "{{ context_file.group | default(_project_group) }}"
+        mode: "{{ context_file.mode | default(_compose_file_mode) }}"
         remote_src: "{{ context_file.remote | default(false) }}"
-      loop: "{{ _context_files | selectattr('file', 'defined') | rejectattr('template', 'defined') | rejectattr('data', 'defined') | rejectattr('lines', 'defined') }}"
+      loop: >-
+        {{
+          _context_files
+          | selectattr('file', 'defined')
+          | rejectattr('template', 'defined')
+          | rejectattr('data', 'defined')
+          | rejectattr('lines', 'defined')
+        }}
       loop_control:
         loop_var: context_file
         label: "{{ context_file.path }}"
   when:
-    - container.build.files is defined
-    - container.build.src is not defined
-    - container.build.git is not defined
+    - service.build.files is defined
+    - service.build.src is not defined
+    - service.build.git is not defined
 
-- name: create {{ _docker_compose_project_label }} build context from git repo
+- name: create {{ _project_label }} build context from git repo
   ansible.builtin.git:
-    repo: "{{ container.build.git.repo if container.build.git is mapping else container.build.git }}"
+    repo: "{{ service.build.git.repo if service.build.git is mapping else service.build.git }}"
     dest: "{{ _build_context_root }}"
-    version: "{{ container.build.git.version | default('HEAD') }}"
+    version: "{{ service.build.git.version | default('HEAD') }}"
   when:
-    - container.build.git is defined
-    - container.build.src is not defined
-    - container.build.files is not defined
+    - service.build.git is defined
+    - service.build.src is not defined
+    - service.build.files is not defined

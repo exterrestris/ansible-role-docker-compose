@@ -13,64 +13,64 @@
 {%  endif %}
 {% endmacro %}
 services:
-{% for container in _docker_compose_containers %}
-  {{ container.service_name }}:
-{%  if container.container_name is defined %}
-    container_name: {{ container.container_name }}
+{% for service in _services %}
+  {{ service.name }}:
+{%  if service.container_name is defined %}
+    container_name: {{ service.container_name }}
 {%  endif %}
-{%  if container.image is defined %}
-{%   if container.image is mapping %}
-{%    if container.image.tag is defined %}
-    image: {{ container.image.name }}:{{ container.image.tag }}
+{%  if service.image is defined %}
+{%   if service.image is mapping %}
+{%    if service.image.tag is defined %}
+    image: {{ service.image.name }}:{{ service.image.tag }}
 {%    else %}
-    image: {{ container.image.name }}
+    image: {{ service.image.name }}
 {%    endif %}
 {%   else %}
-    image: {{ container.image }}
+    image: {{ service.image }}
 {%   endif %}
 {%  endif %}
-{%  if container.build is defined %}
-{%   if container.build | default('.') is mapping %}
-{%    set _container_build_context = container.build.context | default('.') %}
+{%  if service.build is defined %}
+{%   if service.build | default('.') is mapping %}
+{%    set _service_build_context = service.build.context | default('.') %}
     build:
-{%    if _container_build_context.startswith('.') or _container_build_context.startswith('/') %}
-      context: {{ _container_build_context }}
+{%    if _service_build_context.startswith('.') or _service_build_context.startswith('/') %}
+      context: {{ _service_build_context }}
 {%    else %}
-      context: ./{{ _container_build_context }}
+      context: ./{{ _service_build_context }}
 {%    endif %}
-{%    if container.build.args is defined %}
-{{ shorthand('args', container.user.groups) | indent(2, '') }}
+{%    if service.build.args is defined %}
+{{ shorthand('args', service.user.groups) | indent(2, '') }}
 {%-   endif %}
 {%   else %}
-    build: {{ container.build | default('.', true) }}
+    build: {{ service.build | default('.', true) }}
 {%   endif %}
 {%  endif %}
-{%  if container.user is defined %}
-{%   if container.user is mapping %}
-{%    if container.user.user is defined %}
-    user: {{ container.user.user }}{% if container.user.group is defined %}:{{ container.user.group }}{% endif +%}
-{%     if container.user.groups is defined and container.user.groups %}
-{{ shorthand('group_add', container.user.groups) -}}
+{%  if service.user is defined %}
+{%   if service.user is mapping %}
+{%    if service.user.user is defined %}
+    user: {{ service.user.user }}{% if service.user.group is defined %}:{{ service.user.group }}{% endif +%}
+{%     if service.user.groups is defined and service.user.groups %}
+{{ shorthand('group_add', service.user.groups) -}}
 {%     endif %}
 {%    endif %}
 {%   else %}
-    user: {{ container.user }}
+    user: {{ service.user }}
 {%   endif %}
 {%  endif %}
-{%  if container.hostname is defined %}
-    hostname: {{ container.hostname }}
+{%  if service.hostname is defined %}
+    hostname: {{ service.hostname }}
 {%  endif %}
-{%  if container.command is defined and container.command %}
-{{ shorthand('command', container.command)}}
+{%  if service.command is defined and service.command %}
+{{ shorthand('command', service.command)}}
 {%- endif %}
-{%  if container.cap_add is defined and container.cap_add %}
-{{ shorthand('cap_add', container.cap_add)}}
+{%  if service.cap_add is defined and service.cap_add %}
+{{ shorthand('cap_add', service.cap_add)}}
 {%- endif %}
-{%  if container.cap_drop is defined and container.cap_drop %}
-{{ shorthand('cap_drop', container.cap_drop)}}
+{%  if service.cap_drop is defined and service.cap_drop %}
+{{ shorthand('cap_drop', service.cap_drop)}}
 {%- endif %}
-{%  if container.sysctls is defined and container.sysctls %}
-{%   call(sysctl) shorthand('sysctls', container.sysctls) %}
+{%  if service.sysctls is defined and service.sysctls %}
+{%   call(sysctl) shorthand('sysctls', service.sysctls) %}
 {%    if sysctl is mapping %}
 "{{ sysctl.name }}={{ sysctl.value }}"
 {%-   else %}
@@ -78,20 +78,20 @@ services:
 {%-   endif %}
 {%   endcall %}
 {%  endif %}
-{%  if container.expose is defined and container.expose %}
-{{ shorthand('expose', container.expose)}}
+{%  if service.expose is defined and service.expose %}
+{{ shorthand('expose', service.expose)}}
 {%- endif %}
-{%  if container.ports is defined and container.ports %}
-{%   call(port) shorthand('ports', container.ports) %}
+{%  if service.ports is defined and service.ports %}
+{%   call(port) shorthand('ports', service.ports) %}
 {%    if port is mapping %}
-"{% if port.ip is defined %}{{ port.ip }}:{% endif %}{{ port.host | default(port.port) }}:{{ port.container | default(port.port) }}{% if port.protocol is defined %}/{{ port.protocol }}{% endif %}"
+"{% if port.ip is defined %}{{ port.ip }}:{% endif %}{{ port.host | default(port.port) }}:{{ port.service | default(port.port) }}{% if port.protocol is defined %}/{{ port.protocol }}{% endif %}"
 {%-   else %}
 "{{ port }}"
 {%-   endif %}
 {%   endcall %}
 {%  endif %}
-{%  if container.devices is defined and container.devices %}
-{%   call(device) shorthand('devices', container.devices) %}
+{%  if service.devices is defined and service.devices %}
+{%   call(device) shorthand('devices', service.devices) %}
 {%    if device is mapping %}
 "{{ device.source }}:{{ device.target }}"
 {%-   else %}
@@ -99,42 +99,42 @@ services:
 {%-   endif %}
 {%   endcall %}
 {%  endif %}
-{%  if (container.volumes is defined and container.volumes) or (container.user is defined and (container.user.bind_etc | default(false))) %}
-{%   call(volume) shorthand('volumes', container.volumes | default([]) | union(docker_compose_bind_etc_volumes if (container.user is defined and (container.user.bind_etc | default(false))) else [])) %}
+{%  if (service.volumes is defined and service.volumes) or (service.user is defined and (service.user.bind_etc | default(false))) %}
+{%   call(volume) shorthand('volumes', service.volumes | default([]) | union(compose_bind_etc_volumes if (service.user is defined and (service.user.bind_etc | default(false))) else [])) %}
 {%    if volume is mapping -%}
         type: {{ (volume.type | default('bind')) if (volume.type | default('bind')) not in ['directory', 'file'] else 'bind' }}
 {%     if (volume.type | default('bind')) != "tmpfs" %}
-        source: {{ volume.source if (volume.source.startswith('/') or (volume.type | default('bind')) == "volume") else _docker_compose_project_dir ~ '/' ~ volume.source }}
+        source: {{ volume.source if (volume.source.startswith('/') or (volume.type | default('bind')) == "volume") else _project_dir ~ '/' ~ volume.source }}
 {%     endif %}
         target: {{ volume.target }}
 {%-    if volume.read_only | default(false) +%}
         read_only: true
 {%-    endif %}
 {%-   else %}
-"{{ volume if volume.startswith('/') else _docker_compose_project_dir ~ '/' ~ volume }}"
+"{{ volume if volume.startswith('/') else _project_dir ~ '/' ~ volume }}"
 {%-   endif %}
 {%   endcall %}
 {%  endif %}
-{%  if container.networks is defined and container.networks %}
-{{ shorthand('networks', container.networks)}}
-{%- elif container.network_mode is defined %}
-    network_mode: {{ container.network_mode }}
+{%  if service.networks is defined and service.networks %}
+{{ shorthand('networks', service.networks)}}
+{%- elif service.network_mode is defined %}
+    network_mode: {{ service.network_mode }}
 {%  endif %}
-{%  if container.env_file is defined and container.env_file %}
-{%   call(env_file) shorthand('env_file', container.env_file) %}
+{%  if service.env_file is defined and service.env_file %}
+{%   call(env_file) shorthand('env_file', service.env_file) %}
 {%    if env_file is mapping %}
 {%     if env_file.source is defined %}
-{{ env_file.source if env_file.source.startswith('/') else _docker_compose_project_dir ~ '/' ~ env_file.source }}
+{{ env_file.source if env_file.source.startswith('/') else _project_dir ~ '/' ~ env_file.source }}
 {%-    else %}
-{{ _docker_compose_project_dir ~ '/' ~ container.service_name ~ '.env' }}
+{{ _project_dir ~ '/' ~ service.name ~ '.env' }}
 {%-    endif %}
 {%-   else %}
 {{ env_file }}
 {%-   endif %}
 {%   endcall %}
 {%  endif %}
-{%  if container.environment is defined and container.environment %}
-{%   call(env) shorthand('environment', container.environment, 'name', 'value', '"') %}
+{%  if service.environment is defined and service.environment %}
+{%   call(env) shorthand('environment', service.environment, 'name', 'value', '"') %}
 {%    if env is mapping %}
 "{{ env.name }}={{ env.value | replace("\"", "\\\"") }}"
 {%-   else %}
@@ -142,11 +142,11 @@ services:
 {%-   endif %}
 {%   endcall %}
 {%  endif %}
-{%  if container.restart is defined %}
-    restart: {{ container.restart }}
+{%  if service.restart is defined %}
+    restart: {{ service.restart }}
 {%  endif %}
-{%  if container.labels is defined and container.labels %}
-{%   call(label) shorthand('labels', container.labels) %}
+{%  if service.labels is defined and service.labels %}
+{%   call(label) shorthand('labels', service.labels) %}
 {%    if label is mapping %}
 "{{ label.name }}{% if label.value is defined %}={{ label.value }}{% endif %}"
 {%-   else %}
@@ -156,9 +156,9 @@ services:
 {%  endif %}
 {% endfor %}
 
-{% if _docker_compose_volumes | length > 0 %}
+{% if _volumes | length > 0 %}
 volumes:
-{%  for volume in _docker_compose_volumes %}
+{%  for volume in _volumes %}
   {{ volume.name }}:
     external: {{ volume.external | default('false') | string | lower }}
 {%   if volume.alias is defined %}
@@ -185,9 +185,9 @@ volumes:
 {%  endfor %}
 {% endif %}
 
-{% if _docker_compose_networks | length > 0 %}
+{% if _networks | length > 0 %}
 networks:
-{%  for network in _docker_compose_networks %}
+{%  for network in _networks %}
   {{ network.name }}:
     external: {{ network.external | default('false') | string | lower }}
 {%   if network.alias is defined %}

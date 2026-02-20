@@ -1,43 +1,43 @@
 ---
-docker_compose_networks: []
+compose_projects: []
 
-docker_compose_volumes: []
+compose_default_networks: []
 
-docker_compose_autostart: yes
+compose_default_volumes: []
 
-docker_compose_pull_images: yes
+compose_autostart: yes
 
-docker_compose_process_bind_mounts: yes
+compose_pull_images: yes
 
-docker_compose_create_bind_mounts: yes
+compose_process_bind_mounts: yes
 
-docker_compose_projects: []
+compose_create_bind_mounts: yes
 
-docker_compose_compose_file: compose.yaml
+compose_file: compose.yaml
 
-docker_compose_project_owner: root
+compose_owner: root
 
-docker_compose_project_group: docker
+compose_group: docker
 
-docker_compose_project_mode: '640'
+compose_file_mode: '640'
 
-docker_compose_project_dir_mode: '750'
+compose_dir_mode: '750'
 
-docker_compose_project_bind_file_owner: "{{ docker_compose_project_owner }}"
+compose_bind_file_owner: "{{ compose_owner }}"
 
-docker_compose_project_bind_file_group: "{{ docker_compose_project_group }}"
+compose_bind_file_group: "{{ compose_group }}"
 
-docker_compose_project_bind_file_mode: "{{ docker_compose_project_mode }}"
+compose_bind_file_mode: "{{ compose_file_mode }}"
 
-docker_compose_project_env_file_owner: "{{ docker_compose_project_owner }}"
+compose_env_file_owner: "{{ compose_owner }}"
 
-docker_compose_project_env_file_group: "{{ docker_compose_project_group }}"
+compose_env_file_group: "{{ compose_group }}"
 
-docker_compose_project_env_file_mode: "{{ docker_compose_project_mode }}"
+compose_env_file_mode: "{{ compose_file_mode }}"
 
-docker_compose_remove_other_compose_files: yes
+compose_remove_other_compose_files: yes
 
-docker_compose_remove_compose_files:
+compose_remove_compose_files:
   - compose.yaml
   - compose.yml
   - docker-compose.yaml

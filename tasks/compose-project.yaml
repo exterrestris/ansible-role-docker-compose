@@ -1,68 +1,68 @@
 ---
-- name: create {{ _docker_compose_project_label }} directory
+- name: create {{ _project_label }} directory
   file:
-    dest: "{{ _docker_compose_project_dir }}"
+    dest: "{{ _project_dir }}"
     state: directory
-    owner: "{{ _docker_compose_project_owner }}"
-    group: "{{ _docker_compose_project_group }}"
-    mode: "{{ _docker_compose_project_dir_mode }}"
+    owner: "{{ _project_owner }}"
+    group: "{{ _project_group }}"
+    mode: "{{ _project_dir_mode }}"
 
 - block:
-    - name: generate {{ _docker_compose_project_label }} compose file
+    - name: generate {{ _project_label }} compose file
       ansible.builtin.template:
-        src: docker-compose.yaml.j2
-        dest: "{{ _docker_compose_project_dir }}/{{ _docker_compose_compose_file }}"
-        owner: "{{ _docker_compose_project_owner }}"
-        group: "{{ _docker_compose_project_group }}"
-        mode: "{{ _docker_compose_project_mode }}"
+        src: compose.yaml.j2
+        dest: "{{ _project_dir }}/{{ _compose_file }}"
+        owner: "{{ _project_owner }}"
+        group: "{{ _project_group }}"
+        mode: "{{ _compose_file_mode }}"
 
-    - name: remove previous {{ _docker_compose_project_label }} compose files
+    - name: remove previous {{ _project_label }} compose files
       ansible.builtin.file:
-        dest: "{{ _docker_compose_project_dir }}/{{ compose_file }}"
+        dest: "{{ _project_dir }}/{{ compose_file }}"
         state: absent
-      loop: "{{ docker_compose_remove_compose_files }}"
+      loop: "{{ compose_remove_compose_files }}"
       loop_control:
         loop_var: compose_file
       when:
-        - docker_compose_remove_other_compose_files
-        - compose_file != _docker_compose_compose_file
+        - compose_remove_other_compose_files
+        - compose_file != _compose_file
 
-    - name: pull {{ _docker_compose_project_label }} docker images
+    - name: pull {{ _project_label }} docker images
       community.docker.docker_image:
-        name: "{{ container.image.name if container.image is mapping else container.image }}"
-        tag: "{{ container.image.tag | default('latest') if container.image is mapping else 'latest' }}"
+        name: "{{ service.image.name if service.image is mapping else service.image }}"
+        tag: "{{ service.image.tag | default('latest') if service.image is mapping else 'latest' }}"
         source: pull
-      loop: "{{ _docker_compose_containers | selectattr('image', 'defined') | rejectattr('build', 'defined') }}"
+      loop: "{{ _services | selectattr('image', 'defined') | rejectattr('build', 'defined') }}"
       loop_control:
-        loop_var: container
-        label: "{{ { 'service': container.service_name, 'image': container.image } }}"
-      when: _docker_compose_pull_images
+        loop_var: service
+        label: "{{ { 'service': service.name, 'image': service.image } }}"
+      when: _pull_images
 
-    - name: create {{ _docker_compose_project_label }} build context
+    - name: create {{ _project_label }} build context
       ansible.builtin.include_tasks: create-build-context.yaml   
-      loop: "{{ _docker_compose_containers | selectattr('build', 'defined') }}"
+      loop: "{{ _services | selectattr('build', 'defined') }}"
       loop_control:
-        label: "{{ container.service_name }}"
-        loop_var: container
+        label: "{{ service.name }}"
+        loop_var: service
       when:
-        - container.build.context is defined or container.build.src is defined or container.build.git is defined
+        - service.build.context is defined or service.build.src is defined or service.build.git is defined
 
-    - name: process {{ _docker_compose_project_label }} bind mounts
+    - name: process {{ _project_label }} bind mounts
       ansible.builtin.include_tasks: process-bind-mounts.yaml
-      when: _docker_compose_process_bind_mounts
+      when: _process_bind_mounts
 
-    - name: create {{ _docker_compose_project_label }} env files
+    - name: create {{ _project_label }} env files
       ansible.builtin.include_tasks: create-env-file.yaml
-      loop: "{{ _docker_compose_containers | selectattr('env_file', 'defined') }}"
+      loop: "{{ _services | selectattr('env_file', 'defined') }}"
       loop_control:
-        label: "{{ container.service_name }}"
-        loop_var: container
+        label: "{{ service.name }}"
+        loop_var: service
 
-    - name: start {{ _docker_compose_project_label }} 
+    - name: start {{ _project_label }} 
       community.docker.docker_compose_v2:
         state: present
-        project_src: "{{ _docker_compose_project_dir }}"
+        project_src: "{{ _project_dir }}"
         files:
-          - "{{ _docker_compose_compose_file }}"
-      when: _docker_compose_autostart
-  when: _docker_compose_containers | length > 0
+          - "{{ _compose_file }}"
+      when: _autostart
+  when: _services | length > 0

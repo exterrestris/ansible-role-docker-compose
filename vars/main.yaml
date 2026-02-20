@@ -1,5 +1,5 @@
 ---
-docker_compose_bind_etc_volumes:
+compose_bind_etc_volumes:
   - source: /etc/passwd
     target: /etc/passwd
     type: file
