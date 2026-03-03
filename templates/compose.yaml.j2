@@ -102,7 +102,7 @@ services:
 {%  if (service.volumes is defined and service.volumes) or (service.user is defined and (service.user.bind_etc | default(false))) %}
 {%   call(volume) shorthand('volumes', service.volumes | selectattr('target', 'defined') | default([]) | union(compose_bind_etc_volumes if (service.user is defined and (service.user.bind_etc | default(false))) else [])) %}
 {%    if volume is mapping -%}
-        type: {{ (volume.type | default('bind')) if (volume.type | default('bind')) not in ['directory', 'file'] else 'bind' }}
+        type: {{ (volume.type | default('bind')) if (volume.type | default('bind')) not in ['directory', 'file', 'socket'] else 'bind' }}
 {%     if (volume.type | default('bind')) != "tmpfs" %}
         source: {{ volume.source if (volume.source.startswith('/') or (volume.type | default('bind')) == "volume") else _project_dir ~ '/' ~ volume.source }}
 {%     endif %}
