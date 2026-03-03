@@ -18,14 +18,14 @@
 
     - name: remove previous {{ _project_label }} compose files
       ansible.builtin.file:
-        dest: "{{ _project_dir }}/{{ compose_file }}"
+        dest: "{{ _project_dir }}/{{ _remove_compose_file }}"
         state: absent
       loop: "{{ compose_remove_compose_files }}"
       loop_control:
-        loop_var: compose_file
+        loop_var: _remove_compose_file
       when:
         - compose_remove_other_compose_files
-        - compose_file != _compose_file
+        - _remove_compose_file != _compose_file
 
     - name: pull {{ _project_label }} docker images
       community.docker.docker_image:
