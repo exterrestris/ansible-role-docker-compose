@@ -1,0 +1,85 @@
+---
+- name: create {{ _project_label }} bind mount subdirecories
+  ansible.builtin.file:
+    dest: "{{ volume.source if volume.source.startswith('/') else _project_dir ~ '/' ~ volume.source }}/{{ directory.name }}"
+    state: directory
+    owner: "{{ directory.owner | default(volume.owner | default(_bind_file_owner)) }}"
+    group: "{{ directory.group | default(volume.group | default(_bind_file_group)) }}"
+    mode: "{{ directory.mode | default(volume.mode | default(_bind_file_mode)) }}"
+  loop: >-
+    {{
+      volume.contents
+      | rejectattr('template', 'defined')
+      | rejectattr('file', 'defined')
+      | rejectattr('data', 'defined')
+      | rejectattr('lines', 'defined')
+    }}
+  loop_control:
+    loop_var: directory
+    label: "{{ volume.source }}/{{ directory.name }}"
+  when:
+    - (directory.type | default('file')) == 'directory'
+
+- name: create {{ _project_label }} bind mount files from templates
+  ansible.builtin.template:
+    src: "{{ file.template }}"
+    dest: "{{ volume.source if volume.source.startswith('/') else _project_dir ~ '/' ~ volume.source }}/{{ file.name }}"
+    owner: "{{ file.owner | default(volume.owner | default(_bind_file_owner)) }}"
+    group: "{{ file.group | default(volume.group | default(_bind_file_group)) }}"
+    mode: "{{ file.mode | default(volume.mode | default(_bind_file_mode)) }}"
+  loop: >-
+    {{
+      volume.contents
+      | selectattr('template', 'defined')
+      | rejectattr('file', 'defined')
+      | rejectattr('data', 'defined')
+      | rejectattr('lines', 'defined')
+    }}
+  loop_control:
+    loop_var: file
+    label: "{{ volume.source }}/{{ file.name }}"
+  when:
+    - (file.type | default('file')) == 'file'
+
+- name: create {{ _project_label }} bind mount files from data
+  ansible.builtin.copy:
+    dest: "{{ volume.source if volume.source.startswith('/') else _project_dir ~ '/' ~ volume.source }}/{{ file.name }}"
+    content: "{{ file.data if file.data is defined else file.lines | join('\n') }}"
+    owner: "{{ file.owner | default(volume.owner | default(_bind_file_owner)) }}"
+    group: "{{ file.group | default(volume.group | default(_bind_file_group)) }}"
+    mode: "{{ file.mode | default(volume.mode | default(_bind_file_mode)) }}"
+  loop: >-
+    {{
+      []
+      | union(_data_files | selectattr('data', 'defined') | rejectattr('lines', 'defined'))
+      | union(_data_files | selectattr('lines', 'defined') | rejectattr('data', 'defined'))
+    }}
+  loop_control:
+    loop_var: file
+    label: "{{ volume.source }}/{{ file.name }}"
+  when:
+    - (file.type | default('file')) == 'file'
+  vars:
+    _data_files: "{{ volume.contents | rejectattr('file', 'defined') | rejectattr('template', 'defined') }}"
+
+- name: create {{ _project_label }} bind mount files from source files
+  ansible.builtin.copy:
+    src: "{{ file.file }}"
+    dest: "{{ volume.source if volume.source.startswith('/') else _project_dir ~ '/' ~ volume.source }}/{{ file.name }}"
+    owner: "{{ file.owner | default(volume.owner | default(_bind_file_owner)) }}"
+    group: "{{ file.group | default(volume.group | default(_bind_file_group)) }}"
+    mode: "{{ file.mode | default(volume.mode | default(_bind_file_mode)) }}"
+    remote_src: "{{ file.remote | default(false) }}"
+  loop: >-
+    {{
+      volume.contents
+      | selectattr('file', 'defined')
+      | rejectattr('template', 'defined')
+      | rejectattr('data', 'defined')
+      | rejectattr('lines', 'defined')
+    }}
+  loop_control:
+    loop_var: file
+    label: "{{ volume.source }}/{{ file.name }}"
+  when:
+    - (file.type | default('file')) == 'file'

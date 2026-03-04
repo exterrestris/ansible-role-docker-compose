@@ -49,6 +49,17 @@
   when:
     - (volume.type | default('directory')) == 'directory'
 
+- name: create {{ _project_label }} bind directory contents
+  ansible.builtin.include_tasks: create-bind-mount-contents.yaml
+  loop: >-
+    {{ _bind_mounts | selectattr('contents', 'defined') }}
+  loop_control:
+    loop_var: volume
+    label: "{{ volume.source }}"
+  when:
+    - (volume.type | default('directory')) == 'directory'
+    - (volume.contents | default([])) | length > 0
+
 - name: bind {{ _project_label }} files
   ansible.builtin.file:
     dest: "{{ volume.source if volume.source.startswith('/') else _project_dir ~ '/' ~ volume.source }}"
