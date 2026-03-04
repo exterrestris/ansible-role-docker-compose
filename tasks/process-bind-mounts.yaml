@@ -95,7 +95,7 @@
 
 - name: bind {{ _project_label }} files from data
   ansible.builtin.copy:
-    dest: "{{ volume.source }}"
+    dest: "{{ volume.source if volume.source.startswith('/') else _project_dir ~ '/' ~ volume.source }}"
     content: "{{ volume.data if volume.data is defined else volume.lines | join('\n') }}"
     owner: "{{ volume.owner | default(_bind_file_owner) }}"
     group: "{{ volume.group | default(_bind_file_group) }}"
