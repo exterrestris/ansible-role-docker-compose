@@ -1,14 +1,14 @@
-{% macro shorthand(property, values, mapping_key, mapping_value, quote='', key_quote='') %}
-    {{ property }}:
+{% macro shorthand(property, values, mapping_key, mapping_value, quote='', key_quote='', indent=2) %}
+{{ '  ' * indent }}{{ property }}:
 {%  if values is string %}
-      - "{{ values }}"
+{{ '  ' * indent }}  - "{{ values }}"
 {%  elif values is mapping %}
 {%   for key, value in values.items() %}
-      - {{ caller({mapping_key: key, mapping_value: value}) if caller is defined else key_quote ~ key ~ key_quote ~ '=' ~ quote ~ value ~ quote }}
+{{ '  ' * indent }}  - {{ caller({mapping_key: key, mapping_value: value}) if caller is defined else key_quote ~ key ~ key_quote ~ '=' ~ quote ~ value ~ quote }}
 {%   endfor %}
 {%  elif values | length > 0 %}
 {%   for value in values %}
-      - {{ caller(value) if caller is defined else quote ~ value ~ quote }}
+{{ '  ' * indent }}  - {{ caller(value) if caller is defined else quote ~ value ~ quote }}
 {%   endfor %}
 {%  endif %}
 {% endmacro %}
@@ -147,6 +147,26 @@ services:
 {%  endif %}
 {%  if service.restart is defined %}
     restart: {{ service.restart }}
+{%  endif %}
+{%  if service.deploy is defined %}
+    deploy:
+{%   if service.deploy.resources is defined %}
+      resources:
+{%    if service.deploy.resources.reservations is defined %}
+        reservations:
+{%     if service.deploy.resources.reservations.devices is defined and service.deploy.resources.reservations.devices %}
+{%      call(device) shorthand('devices', service.deploy.resources.reservations.devices, indent=5) -%}
+              capabilities: ["{{ device.capabilities | join('", "')}}"]
+{%-      if device.driver is defined +%}
+              driver: {{ device.driver }}
+{%-      endif %}
+{%-      if device.count is defined +%}
+              count: {{ device.count }}
+{%-      endif %}
+{%      endcall %}
+{%     endif %}
+{%    endif %}
+{%   endif %}
 {%  endif %}
 {%  if service.labels is defined and service.labels %}
 {%   call(label) shorthand('labels', service.labels) %}
