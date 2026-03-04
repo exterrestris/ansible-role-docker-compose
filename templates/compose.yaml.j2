@@ -99,12 +99,15 @@ services:
 {%-   endif %}
 {%   endcall %}
 {%  endif %}
-{%  if (service.volumes is defined and service.volumes) or (service.user is defined and (service.user.bind_etc | default(false))) %}
-{%   call(volume) shorthand('volumes', service.volumes | selectattr('target', 'defined') | default([]) | union(compose_bind_etc_volumes if (service.user is defined and (service.user.bind_etc | default(false))) else [])) %}
+{%  set _service_volumes = service.volumes | default([]) | selectattr('target', 'defined') %}
+{%  set _bind_etc_volumes = compose_bind_etc_volumes if (service.user is defined and (service.user.bind_etc | default(false))) else [] %}
+{%  if _service_volumes or _bind_etc_volumes %}
+{%   call(volume) shorthand('volumes', _service_volumes | union(_bind_etc_volumes)) %}
 {%    if volume is mapping -%}
-        type: {{ (volume.type | default('bind')) if (volume.type | default('bind')) not in ['directory', 'file', 'socket'] else 'bind' }}
-{%     if (volume.type | default('bind')) != "tmpfs" %}
-        source: {{ volume.source if (volume.source.startswith('/') or (volume.type | default('bind')) == "volume") else _project_dir ~ '/' ~ volume.source }}
+{%     set _volume_type = volume.type | default('bind') -%}
+        type: {{ _volume_type if _volume_type not in ['directory', 'file', 'socket'] else 'bind' }}
+{%     if _volume_type != "tmpfs" %}
+        source: {{ volume.source if (volume.source.startswith('/') or _volume_type == "volume") else _project_dir ~ '/' ~ volume.source }}
 {%     endif %}
         target: {{ volume.target }}
 {%-    if volume.read_only | default(false) +%}
