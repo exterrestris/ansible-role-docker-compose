@@ -27,6 +27,28 @@
         - compose_remove_other_compose_files
         - _remove_compose_file != _compose_file
 
+    - name: create {{ _project_label }} compose env file
+      ansible.builtin.include_tasks: create-env-file.yaml
+      when:
+        - project.env_file is defined
+      vars:
+        service:
+          env_file: >-
+            [
+              {{
+                project.env_file | combine({
+                  'path': _project_dir ~ '/.env'
+                })
+              }}
+            ]
+
+    - name: remove {{ _project_label }} compose env file
+      ansible.builtin.file:
+        dest: "{{ _project_dir }}/.env"
+        state: absent
+      when:
+        - project.env_file is not defined
+
     - name: pull {{ _project_label }} docker images
       community.docker.docker_image:
         name: "{{ service.image.name if service.image is mapping else service.image }}"
