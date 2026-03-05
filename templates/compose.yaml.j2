@@ -148,6 +148,22 @@ services:
 {%  if service.restart is defined %}
     restart: {{ service.restart }}
 {%  endif %}
+{%  if service.links is defined and service.links %}
+{{ shorthand('links', service.links)}}
+{%- endif %}
+{%  if service.depends_on is defined and service.depends_on %}
+{%   if service.depends_on is mapping %}
+    depends_on:
+{%    for service, config in service.depends_on.items() %}
+      {{ service }}:
+        condition: {{ config.condition | default('service_started') }}
+        required: {{ config.required | default('true') | string | lower }}
+        restart: {{ config.restart | default('false') | string | lower }}
+{%    endfor %}
+{%-  else %}
+{{ shorthand('depends_on', service.depends_on)}}
+{%-  endif %}
+{%- endif %}
 {%  if service.labels is defined and service.labels %}
 {%   call(label) shorthand('labels', service.labels) %}
 {%    if label is mapping %}
