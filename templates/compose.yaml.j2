@@ -12,6 +12,11 @@
 {%   endfor %}
 {%  endif %}
 {% endmacro %}
+{% macro property_attr(obj, property, indent=2, attribute=none) %}
+{%  if obj[property] is defined %}
+{{ '  ' * indent }}{{ attribute | default(property, true) }}: {{ obj[property] }}
+{%  endif %}
+{% endmacro %}
 services:
 {% for service in _services %}
   {{ service.name }}:
@@ -147,6 +152,21 @@ services:
 {%  endif %}
 {%  if service.restart is defined %}
     restart: {{ service.restart }}
+{%  endif %}
+{%  if service.healthcheck is defined %}
+    healthcheck:
+{%   if service.healthcheck is false %}
+      disable: true
+{%   elif service.healthcheck is mapping %}
+{{- property_attr(service.healthcheck, 'test', 3) -}}
+{{- property_attr(service.healthcheck, 'interval', 3) -}}
+{{- property_attr(service.healthcheck, 'timeout', 3) -}}
+{{- property_attr(service.healthcheck, 'retries', 3) -}}
+{{- property_attr(service.healthcheck, 'start_period', 3) -}}
+{{- property_attr(service.healthcheck, 'start_interval', 3) -}}
+{%   else %}
+      test: {{ service.healthcheck }}
+{%   endif %}
 {%  endif %}
 {%  if service.links is defined and service.links %}
 {{ shorthand('links', service.links)}}
