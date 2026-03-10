@@ -63,6 +63,7 @@
           _context_files
           | selectattr('template', 'defined')
           | rejectattr('file', 'defined')
+          | rejectattr('url', 'defined')
           | rejectattr('data', 'defined')
           | rejectattr('lines', 'defined')
         }}
@@ -89,7 +90,13 @@
       when:
         - context_file.create | default(true)
       vars:
-        _data_context_files: "{{ _context_files | rejectattr('file', 'defined') | rejectattr('template', 'defined') }}"
+        _data_context_files: >-
+          {{
+            _context_files
+            | rejectattr('file', 'defined')
+            | rejectattr('url', 'defined')
+            | rejectattr('template', 'defined')
+          }}
 
     - name: copy {{ _project_label }} build context files from source files
       ansible.builtin.copy:
@@ -103,6 +110,7 @@
         {{
           _context_files
           | selectattr('file', 'defined')
+          | rejectattr('url', 'defined')
           | rejectattr('template', 'defined')
           | rejectattr('data', 'defined')
           | rejectattr('lines', 'defined')
@@ -110,6 +118,28 @@
       loop_control:
         loop_var: context_file
         label: "{{ context_file.path }}"
+
+    - name: copy {{ _project_label }} build context files from urls
+      ansible.builtin.get_url:
+        url: "{{ context_file.url }}"
+        dest: "{{ context_file.path }}"
+        owner: "{{ context_file.owner | default(_project_owner) }}"
+        group: "{{ context_file.group | default(_project_group) }}"
+        mode: "{{ context_file.mode | default(_compose_file_mode) }}"
+      loop: >-
+        {{
+          _context_files
+          | selectattr('url', 'defined')
+          | rejectattr('file', 'defined')
+          | rejectattr('template', 'defined')
+          | rejectattr('data', 'defined')
+          | rejectattr('lines', 'defined')
+        }}
+      loop_control:
+        loop_var: context_file
+        label: "{{ context_file.path }}"
+      when:
+        - compose_allow_fetching_files_from_urls
   when:
     - service.build.files is defined
     - service.build.src is not defined

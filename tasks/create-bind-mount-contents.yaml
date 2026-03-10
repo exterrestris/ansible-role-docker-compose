@@ -11,6 +11,7 @@
       volume.contents
       | rejectattr('template', 'defined')
       | rejectattr('file', 'defined')
+      | rejectattr('url', 'defined')
       | rejectattr('data', 'defined')
       | rejectattr('lines', 'defined')
     }}
@@ -32,6 +33,7 @@
       volume.contents
       | selectattr('template', 'defined')
       | rejectattr('file', 'defined')
+      | rejectattr('url', 'defined')
       | rejectattr('data', 'defined')
       | rejectattr('lines', 'defined')
     }}
@@ -60,7 +62,13 @@
   when:
     - (file.type | default('file')) == 'file'
   vars:
-    _data_files: "{{ volume.contents | rejectattr('file', 'defined') | rejectattr('template', 'defined') }}"
+    _data_files: >-
+      {{
+        volume.contents
+        | rejectattr('file', 'defined')
+        | rejectattr('url', 'defined')
+        | rejectattr('template', 'defined')
+      }}
 
 - name: create {{ _project_label }} bind mount files from source files
   ansible.builtin.copy:
@@ -74,6 +82,7 @@
     {{
       volume.contents
       | selectattr('file', 'defined')
+      | rejectattr('url', 'defined')
       | rejectattr('template', 'defined')
       | rejectattr('data', 'defined')
       | rejectattr('lines', 'defined')
@@ -83,3 +92,26 @@
     label: "{{ volume.source }}/{{ file.name }}"
   when:
     - (file.type | default('file')) == 'file'
+
+- name: create {{ _project_label }} bind mount files from urls
+  ansible.builtin.get_url:
+    url: "{{ file.url }}"
+    dest: "{{ volume.source if volume.source.startswith('/') else _project_dir ~ '/' ~ volume.source }}/{{ file.name }}"
+    owner: "{{ file.owner | default(volume.owner | default(_bind_file_owner)) }}"
+    group: "{{ file.group | default(volume.group | default(_bind_file_group)) }}"
+    mode: "{{ file.mode | default(volume.mode | default(_bind_file_mode)) }}"
+  loop: >-
+    {{
+      volume.contents
+      | selectattr('url', 'defined')
+      | rejectattr('file', 'defined')
+      | rejectattr('template', 'defined')
+      | rejectattr('data', 'defined')
+      | rejectattr('lines', 'defined')
+    }}
+  loop_control:
+    loop_var: file
+    label: "{{ volume.source }}/{{ file.name }}"
+  when:
+    - (file.type | default('file')) == 'file'
+    - compose_allow_fetching_files_from_urls

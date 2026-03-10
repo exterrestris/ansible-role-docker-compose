@@ -42,3 +42,5 @@ compose_remove_compose_files:
   - compose.yml
   - docker-compose.yaml
   - docker-compose.yml
+
+compose_allow_fetching_files_from_urls: no
