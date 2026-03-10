@@ -204,7 +204,7 @@ volumes:
     name: {{ volume.alias }}
 {%   endif %}
 {%   if volume.driver is defined %}
-    driver: {{ network.driver }}
+    driver: {{ volume.driver }}
 {%   endif %}
 {%   if volume.driver_opts is defined %}
     driver_opts:
