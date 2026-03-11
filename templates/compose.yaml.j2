@@ -54,9 +54,9 @@ services:
 {%   if service.user is mapping %}
 {%    if service.user.user is defined %}
     user: {{ service.user.user }}{% if service.user.group is defined %}:{{ service.user.group }}{% endif +%}
-{%     if service.user.groups is defined and service.user.groups %}
+{%    endif %}
+{%    if service.user.groups is defined and service.user.groups %}
 {{ shorthand('group_add', service.user.groups) -}}
-{%     endif %}
 {%    endif %}
 {%   else %}
     user: {{ service.user }}
